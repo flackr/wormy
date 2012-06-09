@@ -1,0 +1,225 @@
+<!DOCTYPE HTML>
+<html>
+<style type="text/css">
+html, body {
+	height: 100%;
+	margin: 0;
+	overflow: hidden;
+	padding: 0;
+	width: 100%;
+}
+
+body {
+  background-color: #444;
+}
+
+#dialogs {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+}
+
+#dialogs[hidden] {
+  display: none;
+}
+
+#dialogs .dialog[hidden] {
+  display: none;
+}
+
+#gameinfo .dialog,
+#dialogs .dialog {
+  background-color: rgb(40,40,40);
+  border: 1px solid #aaa;
+  -webkit-border-radius: 10px;
+  -moz-border-radius: 10px;
+  border-radius: 10px;
+  color: white;
+}
+
+#dialogs .dialog {
+  background-color: rgba(40,40,40,0.6);
+  margin-top: 20px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 15px;
+  width: 500px;
+}
+
+h1, h2 {
+  margin-top: 0;
+}
+
+h1 {
+  font-size: 20px;
+}
+
+h2 {
+  font-size: 18px;
+}
+
+.table {
+  display: table;
+}
+
+.table > * {
+  display: table-row;
+}
+
+.table > * > * {
+  display: table-cell;
+}
+
+.controls > * > * {
+  text-align: center;
+  width: 125px;
+}
+
+.table > .header > * {
+  font-weight: bold;
+  padding-bottom: 10px;
+}
+
+.controls > * > *:first-child {
+  text-align: left;
+}
+
+/* Direction key styling */
+.directionkeys {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.directionkeys > tbody > tr > td {
+  border: 1px solid white;
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  border-radius: 3px;
+  border-spacing: 2px;
+  text-align: center;
+  width: 25px;
+}
+
+.directionkeys .empty {
+  border: none;
+}
+
+#templates {
+  display: none;
+}
+
+.fill {
+  width: 100%;
+}
+
+.progress {
+  border: 1px solid #888;
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  border-radius: 3px;
+  background-color: black;
+}
+
+.progress > .bar {
+  background-color: red;
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  border-radius: 3px;
+  height: 8px;
+  width: 0;
+}
+
+.player span {
+  white-space: nowrap;
+}
+
+#gameinfo .dialog {
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 5px;
+  overflow: hidden;
+  padding: 5px;
+  width: 80%;
+}
+
+</style>
+<script type="text/javascript" src="lib/socket.io.js"></script>
+<script type="text/javascript" src="wormy-common.js"></script>
+<script type="text/javascript" src="wormy-client.js"></script>
+<body>
+<div id="dialogs" hidden>
+  <div id="instructions" class="dialog">
+    <h1>Wormy</h1>
+    <p>Wormy is a game of strategy and timing. Control your worm to try to eat the most food and grow longer than any of the other worms. Win the level by growing to 100 units long and 3 times longer than your competitors.</p>
+    <h2>Controls</h2>
+    <div class="table controls">
+      <div class="header">
+        <div>Name:</div>
+        <div><input type="text" id="name0" size="10" value="Sammy"></div>
+        <div><input type="text" id="name1" size="10" value="Tommy"></div>
+        <div><input type="text" id="name2" size="10" value="Billy"></div>
+      </div>
+      <div>
+        <div>Change direction:</div>
+
+        <!-- Player 1 -->
+        <div>
+          <table class="directionkeys">
+            <tr><td class="empty"></td><td>Up</td><td class="empty"></td></tr>
+            <tr><td>Left</td><td>Down</td><td>Right</td></tr>
+          </table>
+        </div>
+
+        <!-- Player 2 -->
+        <div>
+          <table class="directionkeys">
+            <tr><td class="empty"></td><td>W</td><td class="empty"></td></tr>
+            <tr><td>A</td><td>S</td><td>D</td></tr>
+          </table>
+        </div>
+
+        <!-- Player 3 -->
+        <div>
+          <table class="directionkeys">
+            <tr><td class="empty"></td><td>I</td><td class="empty"></td></tr>
+            <tr><td>J</td><td>K</td><td>L</td></tr>
+          </table>
+        </div>
+      </div>
+      <div>
+        <div>Enter game:</div>
+        <div>Space</div>
+        <div>E</div>
+        <div>O</div>
+      </div>
+      <div>
+        <div>Leave game:</div>
+        <div>Escape</div>
+        <div>Q</div>
+        <div>U</div>
+      </div>
+    </div>
+    <p>You can change your player names above and then press [Enter] or click/tap outside this dialog to dismiss these instructions. Press 'R' to toggle retro mode (old style graphics).</p>
+  </div>
+</div>
+<div id="game">
+  <canvas id="gameCanvas" width="80" height="50"></canvas>
+  <div id="gameinfo">
+    <div class="dialog">
+      <table>
+        <tbody id="players"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<div id="templates">
+  <table>
+    <tr id="player" class="player">
+      <td><span class="name"></span></td>
+      <td><span class="ping"></span></td>
+      <td class="fill progress"><div class="bar"></div></td>
+    </tr>
+  </table>
+</div>
+</body>
+</html>
