@@ -474,7 +474,7 @@ wormy.Server = function() {
        */
       socket.on('lag', function(data) {
         var i = self.clientIndex(socket);
-        self.sendPing(i, data[0] + (data.length > 1 ? Math.abs(data[1]) : 0));
+        self.sendPing(i, data[0] + Math.round(data.length > 1 ? Math.abs(data[1]) : 0));
       });
     },
   };
