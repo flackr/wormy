@@ -467,13 +467,14 @@ wormy.Server = function() {
         console.log('WARNING: Lag or out of sync: ' + addr + ' received event for f# ' + data[1] + ' on f# ' + data[0]);
         self.resetClient(socket);
       });
+
+      /**
+       * Receives updates on the current network and timing statistics for the given player.
+       * @param {Array<number>} data An array containing [ping, offset, skew, %old_speed, %new_speed].
+       */
       socket.on('lag', function(data) {
         var i = self.clientIndex(socket);
-        var l = 'LAG: ' + addr + ' ping: ' + data[0] + ' ms';
-        if (data.length > 1)
-          l += ' offset: ' + data[1] + ' ms skew: ' + data[2] + '% speed: ' + data[3] + '% new speed: ' + data[4] + '%';
-        console.log(l);
-        self.sendPing(i, data[0]);
+        self.sendPing(i, data[0] + (data.length > 1 ? Math.abs(data[1]) : 0));
       });
     },
   };
