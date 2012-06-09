@@ -94,11 +94,6 @@ wormy.Server = function() {
     this.loadLevel(0);
 
     io.sockets.on('connection', wormy.util.bind(this, this.onConnection));
-
-    // Update master server.
-   /* loadAjax(master_server+'?op=add&port='+port, '', function(response) {
-      console.log('Response from master server: ' + response);
-    });*/
   }
 
   Server.prototype = {
