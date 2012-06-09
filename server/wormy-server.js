@@ -14,9 +14,8 @@ var app = require('http').createServer(handler),
 
 io.set('log level', 1); // reduce logging.
 
-require.paths.unshift('.');
-var wormy = require('client/wormy-common.js');
-var levels = require('wormy-levels.js');
+var wormy = require('./client/wormy-common.js');
+var levels = require('./wormy-levels.js');
 
 app.listen(port);
 
@@ -97,9 +96,9 @@ wormy.Server = function() {
     io.sockets.on('connection', wormy.util.bind(this, this.onConnection));
 
     // Update master server.
-    loadAjax(master_server+'?op=add&port='+port, '', function(response) {
+   /* loadAjax(master_server+'?op=add&port='+port, '', function(response) {
       console.log('Response from master server: ' + response);
-    });
+    });*/
   }
 
   Server.prototype = {

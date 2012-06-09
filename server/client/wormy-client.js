@@ -310,8 +310,8 @@ wormy.Client = function() {
           this.resetWorm_(this.localPlayers_[i].w);
           return;
         }
-        var cx = this.canvas.getAttribute('width') / 2;
-        var cy = this.canvas.getAttribute('height') / 2;
+        var cx = this.canvas.offsetWidth / 2 + this.canvas.offsetLeft;
+        var cy = this.canvas.offsetHeight / 2 + this.canvas.offsetTop;
         var dx = x - cx;
         var dy = y - cy;
         if (Math.abs(dx) > Math.abs(dy)) {
