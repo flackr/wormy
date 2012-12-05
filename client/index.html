@@ -3,156 +3,29 @@
 <head>
 <title>Wormy - A network multiplayer worm game</title>
 <link rel="icon" href="favicon.ico">
-<style type="text/css">
-html, body {
-	height: 100%;
-	margin: 0;
-	overflow: hidden;
-	padding: 0;
-	width: 100%;
-}
-
-body {
-  background-color: #444;
-}
-
-#dialogs {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-}
-
-#dialogs[hidden] {
-  display: none;
-}
-
-#dialogs .dialog[hidden] {
-  display: none;
-}
-
-#gameinfo .dialog,
-#dialogs .dialog {
-  background-color: rgb(40,40,40);
-  border: 1px solid #aaa;
-  -webkit-border-radius: 10px;
-  -moz-border-radius: 10px;
-  border-radius: 10px;
-  color: white;
-}
-
-#dialogs .dialog {
-  background-color: rgba(40,40,40,0.6);
-  margin-top: 20px;
-  margin-left: auto;
-  margin-right: auto;
-  padding: 15px;
-  width: 500px;
-}
-
-h1, h2 {
-  margin-top: 0;
-}
-
-h1 {
-  font-size: 20px;
-}
-
-h2 {
-  font-size: 18px;
-}
-
-.table {
-  display: table;
-}
-
-.table > * {
-  display: table-row;
-}
-
-.table > * > * {
-  display: table-cell;
-}
-
-.controls > * > * {
-  text-align: center;
-  width: 125px;
-}
-
-.table > .header > * {
-  font-weight: bold;
-  padding-bottom: 10px;
-}
-
-.controls > * > *:first-child {
-  text-align: left;
-}
-
-/* Direction key styling */
-.directionkeys {
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.directionkeys > tbody > tr > td {
-  border: 1px solid white;
-  -webkit-border-radius: 3px;
-  -moz-border-radius: 3px;
-  border-radius: 3px;
-  border-spacing: 2px;
-  text-align: center;
-  width: 25px;
-}
-
-.directionkeys .empty {
-  border: none;
-}
-
-#templates {
-  display: none;
-}
-
-.fill {
-  width: 100%;
-}
-
-.progress {
-  border: 1px solid #888;
-  -webkit-border-radius: 3px;
-  -moz-border-radius: 3px;
-  border-radius: 3px;
-  background-color: black;
-}
-
-.progress > .bar {
-  background-color: red;
-  -webkit-border-radius: 3px;
-  -moz-border-radius: 3px;
-  border-radius: 3px;
-  height: 8px;
-  width: 0;
-}
-
-.player span {
-  white-space: nowrap;
-}
-
-#gameinfo .dialog {
-  margin-left: auto;
-  margin-right: auto;
-  margin-top: 5px;
-  overflow: hidden;
-  padding: 5px;
-  width: 80%;
-}
-
-</style>
-<script type="text/javascript" src="lib/socket.io.js"></script>
-<script type="text/javascript" src="wormy-common.js"></script>
-<script type="text/javascript" src="wormy-client.js"></script>
+<link rel="stylesheet" href="css/wormy.css">
+<link rel="stylesheet" href="lobby/lobby.css">
+<script type="text/javascript" src="lobby/util.js"></script>
+<script type="text/javascript" src="lobby/client.js"></script>
+<script type="text/javascript" src="lobby/host.js"></script>
+<script type="text/javascript" src="lobby/sha1.js"></script>
+<script type="text/javascript" src="lobby/lobby.js"></script>
+<script type="text/javascript" src="js/wormy-levels.js"></script>
+<script type="text/javascript" src="js/wormy-common.js"></script>
+<script type="text/javascript" src="js/wormy-server.js"></script>
+<script type="text/javascript" src="js/wormy-client.js"></script>
 </head>
 <body>
 <div id="dialogs" hidden>
-  <div id="instructions" class="dialog">
+  <div id="lobby" class="dialog" hidden>
+    <div id="create-game-dialog">
+      Name: <input type="text" id="game-name" value="A wormy game.">
+      Port: <input type="text" id="game-port" value="9997">
+      <button id="create-game">Create</button>
+    </div>
+    <div id="wormy-game-list"></div>
+  </div>
+  <div id="instructions" class="dialog" hidden>
     <h1>Wormy</h1>
     <p>Wormy is a game of strategy and timing. Control your worm to try to eat the most food and grow longer than any of the other worms. Win the level by growing to 100 units long and 3 times longer than your competitors.</p>
     <h2>Controls</h2>

@@ -16,6 +16,66 @@ var clone = function(obj) {
   return JSON.parse(JSON.stringify(obj));
 };
 
+function LobbySocketAdapter(connection) {
+  this.listeners_ = {};
+  this.connection_ = connection;
+  connection.addEventListener('message', this.onMessage.bind(this));
+}
+
+LobbySocketAdapter.prototype = {
+  emit: function(type, data) {
+    this.connection_.send({t: type, d: data});
+  },
+
+  on: function(type, callback) {
+    if (!this.listeners_[type])
+      this.listeners_[type] = [];
+    this.listeners_[type].push(callback);
+  },
+
+  onMessage: function(m) {
+    if (this.listeners_[m.t]) {
+      for (var i = 0; i < this.listeners_[m.t].length; i++) {
+        this.listeners_[m.t][i](m.d);
+      }
+    }
+  },
+};
+
+function LobbyServerSocketAdapter(connection, index) {
+  this.listeners_ = {};
+  this.connection_ = connection;
+  this.clientIndex_ = index;
+  connection.addEventListener('message', this.onMessage.bind(this));
+  connection.addEventListener('disconnection', this.onDisconnection.bind(this));
+}
+
+LobbyServerSocketAdapter.prototype = {
+  emit: function(type, data) {
+    this.connection_.send(this.clientIndex_, {t: type, d: data});
+  },
+
+  on: function(type, callback) {
+    if (!this.listeners_[type])
+      this.listeners_[type] = [];
+    this.listeners_[type].push(callback);
+  },
+
+  onMessage: function(clientIndex, m) {
+    if (clientIndex != this.clientIndex_)
+      return;
+    if (this.listeners_[m.t]) {
+      for (var i = 0; i < this.listeners_[m.t].length; i++) {
+        this.listeners_[m.t][i](m.d);
+      }
+    }
+  },
+
+  onDisconnection: function(clientIndex) {
+    this.onMessage(clientIndex, {t: 'disconnect', m: {}});
+  }
+};
+
 var wormy = function() {
 
   var adjust = function(factor, prop) {
