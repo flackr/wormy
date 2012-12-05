@@ -12,12 +12,18 @@ wormy.Server = function() {
   var idleFrames = 25 * 5; // 25 seconds considered idle.
   var coolDownFrames = 20; // 4 seconds between reconnects.
 
-  var Server = function(connection) {
+  var Server = function(connection, name) {
     wormy.Game.apply(this);
     this.connection_ = connection;
     this.clients = [];
     this.worms = [];
     this.loadLevel(0);
+
+    this.connection_.updateInfo({
+      gameId: 'wormy',
+      description: name,
+      status: 'running',
+    });
 
     this.connection_.addEventListener('connection', this.onConnection.bind(this));
   }
@@ -277,6 +283,18 @@ wormy.Server = function() {
       });
     },
 
+    updatePlayerList: function() {
+      var playerList = [];
+      for (var i = 0; i < this.clients.length; i++) {
+        if (this.clients[i] && this.clients[i].wormNames) {
+          for (var j = 0; j < this.clients[i].wormNames.length; j++) {
+            playerList.push(this.clients[i].wormNames[j]);
+          }
+        }
+      }
+      this.connection_.updateInfo({players: playerList});
+    },
+
     onConnection: function(clientIndex) {
       var addr = clientIndex;
 
@@ -324,6 +342,7 @@ wormy.Server = function() {
           self.clients[i].worms[localIndex] = evt.p;
           self.clients[i].wormNames[localIndex] =
               data[1].substr(0, maxPlayerNameLength);
+          self.updatePlayerList();
         } else {
           console.log('WARNING: Could not find location for '+addr+' worm '+localIndex);
         }

@@ -222,7 +222,7 @@ wormy.Client = function() {
     },
 
     hideDialog: function() {
-      if (this.dialog.listeners) {
+      if (this.dialog && this.dialog.listeners) {
         for (var i = 0; i < this.dialog.listeners.length; i++) {
           for (var j in this.dialog.listeners[i][1]) {
             this.dialog.listeners[i][0].removeEventListener(
@@ -482,6 +482,7 @@ wormy.Client = function() {
     },
 
     connectClient: function(connection) {
+      this.showDialog($('instructions'));
       this.connection_ = connection;
       this.socket = new LobbySocketAdapter(this.connection_);
 

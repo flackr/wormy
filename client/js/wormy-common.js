@@ -47,6 +47,7 @@ function LobbyServerSocketAdapter(connection, index) {
   this.connection_ = connection;
   this.clientIndex_ = index;
   connection.addEventListener('message', this.onMessage.bind(this));
+  connection.addEventListener('disconnection', this.onDisconnection.bind(this));
 }
 
 LobbyServerSocketAdapter.prototype = {
@@ -69,6 +70,10 @@ LobbyServerSocketAdapter.prototype = {
       }
     }
   },
+
+  onDisconnection: function(clientIndex) {
+    this.onMessage(clientIndex, {t: 'disconnect', m: {}});
+  }
 };
 
 var wormy = function() {
