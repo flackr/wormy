@@ -19,7 +19,7 @@ Map.prototype = {
   }
 };
 
-exports.getLevel = function(level) {
+window.getLevel = function(level) {
   level = level % 8;
   var m = new Map(80, 50);
   if (level == 1) {

@@ -1,0 +1,21 @@
+{
+  "name": "Wormy",
+  "description": "A multiplayer worm game",
+  "version": "0.6",
+  "manifest_version": 2,
+
+  "permissions": [
+    "experimental",
+    {"socket": [
+      "tcp-connect",
+      "tcp-listen"
+    ]},
+    "storage"
+  ],
+
+  "app": {
+    "background": {
+      "scripts": ["bin/background.js"]
+    }
+  }
+}

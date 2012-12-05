@@ -4,81 +4,7 @@
  * Author: Robert Flack (flackr@gmail.com)
  */
 
-var port = 8000;
-var master_server = 'http://www.dynprojects.com/dp/server/server.php';
-var app = require('http').createServer(handler),
-	io = require('socket.io').listen(app),
-	fs = require('fs'),
-	path = require('path'),
-  xhr = require('xmlhttprequest');
-
-io.set('log level', 1); // reduce logging.
-
-var wormy = require('./client/wormy-common.js');
-var levels = require('./wormy-levels.js');
-
-app.listen(port);
-
-function getContentType(filePath) {
-	if (filePath.substr(filePath.length - 5) == '.html')
-		return 'text/html';
-	if (filePath.substr(filePath.length - 4) == '.css')
-		return 'text/css';
-	if (filePath.substr(filePath.length - 3) == '.js')
-		return 'text/javascript';
-	return 'text/plain';
-}
-
-function handler(req, res) {
-  console.log('Incoming request for '+req.url);
-  if (req.url == '/status') {
-    res.writeHead(200, { 'Content-Type': 'text/plain' });
-    res.end(JSON.stringify(server.serverStatus()));
-  }
-	var filePath = 'client' + req.url;
-	if (filePath == 'client/')
-		filePath = 'client/index.html';
-	path.exists(filePath, function(exists) {
-		if (exists) {
-			fs.readFile(filePath, function(error, content) {
-				if (error) {
-					res.writeHead(500);
-					res.end();
-				} else {
-					res.writeHead(200, { 'Content-Type': getContentType(filePath) });
-					res.end(content, 'utf-8');
-				}
-			});
-		} else {
-			res.writeHead(404);
-			res.end();
-		}
-	});
-}
-
-function loadAjax(url, data, callback)
-{
-  var xmlhttp;
-  data = data || '';
-  xmlhttp=new xhr.XMLHttpRequest();
-
-  xmlhttp.onreadystatechange=function() {
-    if (xmlhttp.readyState==4 && xmlhttp.status==200) {
-      if (callback)
-        callback(xmlhttp.responseText);
-    }
-  }
-  xmlhttp.open("POST", url, true);
-  xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-  xmlhttp.setRequestHeader("Content-length", data.length);
-  xmlhttp.setRequestHeader("Connection", "close");
-  xmlhttp.send(data);
-}
-
-wormy.Game.prototype.buffer = wormy.Game.prototype.buffer -
-  Math.floor((wormy.Game.prototype.buffer - wormy.Game.prototype.playAt) / 2);
-console.log('Buffer set to '+wormy.Game.prototype.buffer);
-
+// TODO(flackr): Adjust server buffer to half as before.
 wormy.Server = function() {
 
   var maxPlayers = 16;
@@ -86,14 +12,14 @@ wormy.Server = function() {
   var idleFrames = 25 * 5; // 25 seconds considered idle.
   var coolDownFrames = 20; // 4 seconds between reconnects.
 
-  var Server = function(io) {
+  var Server = function(connection) {
     wormy.Game.apply(this);
-    this.io = io;
+    this.connection_ = connection;
     this.clients = [];
     this.worms = [];
     this.loadLevel(0);
 
-    io.sockets.on('connection', wormy.util.bind(this, this.onConnection));
+    this.connection_.addEventListener('connection', this.onConnection.bind(this));
   }
 
   Server.prototype = {
@@ -240,14 +166,14 @@ wormy.Server = function() {
       this.level = level;
       this.foodCount = 0;
       this.stop();
-      this.baseGameState_.l = levels.getLevel(level);
+      this.baseGameState_.l = getLevel(level);
       for (var i = 0; i < this.baseGameState_.p.length; i++) {
         if (this.baseGameState_.p[i].s == 0)
           this.baseGameState_.p[i].s = 1;
         this.baseGameState_.p[i].t = [];
       }
       this.baseGameState_.food = [];
-      this.state_ = wormy.util.clone(this.baseGameState_);
+      this.state_ = clone(this.baseGameState_);
       this.moves_ = [];
       while (this.moves_.length < this.playAt + 1)
         this.moves_.push([]);
@@ -333,7 +259,7 @@ wormy.Server = function() {
       } else {
         // If the event doesn't get delivered then we have to tell the client
         // they're out of sync.
-        console.log('WARNING: Lag or out of sync: ' + socket.handshake.address.address + ' sent event for f# ' + evt.f + ' on f# ' + this.frame);
+        console.log('WARNING: Lag or out of sync: sent event for f# ' + evt.f + ' on f# ' + this.frame);
         this.resetClient(socket);
       }
     },
@@ -351,10 +277,10 @@ wormy.Server = function() {
       });
     },
 
-    onConnection: function(socket) {
-      var addr = socket.handshake.address.address;
-      console.log('INFO: Client connected from '+addr);
+    onConnection: function(clientIndex) {
+      var addr = clientIndex;
 
+      var socket = new LobbyServerSocketAdapter(this.connection_, clientIndex);
       // Send game state immediately.
       this.resetClient(socket);
 
@@ -481,5 +407,3 @@ wormy.Server = function() {
 
   return Server;
 }();
-
-var server = new wormy.Server(io);

@@ -89,10 +89,7 @@ wormy.Client = function() {
 
     this.initialize();
     this.layout();
-    this.connect();
-
-    if (window.location.hash != '#view')
-      this.showDialog($('instructions'));
+    this.showDialog($('lobby'));
 
     window.addEventListener('resize', bind(this, this.layout));
     document.addEventListener('keydown', bind(this, this.handleKeyDown_));
@@ -125,19 +122,40 @@ wormy.Client = function() {
         self.spriteSheet = spriteSheet;
       };
 
-      if (typeof(Storage)!=="undefined" && localStorage) {
+      var storage = (chrome && chrome.storage && chrome.storage.local) ||
+          window.localStorage;
+      if (typeof(Storage)!=="undefined" && storage) {
         for (var i = 0; i < this.localPlayers_.length; i++) {
           var name = 'name' + i;
           var el = $(name);
           if (el) {
-            if (localStorage[name])
-              el.value = localStorage[name];
+            if (storage[name])
+              el.value = storage[name];
             el.onchange = function() {
-              localStorage[this.id] = this.value;
+              storage[this.id] = this.value;
             }
           }
         }
       }
+
+      $('create-game-dialog').style.display = lobby.serverCapable() ?
+          '' : 'none';
+      $('create-game').addEventListener('click', this.createGame.bind(this));
+      lobby.GameLobby.setUrl('http://flackr-dev.wat:9999');
+      this.gameLobby = $('wormy-game-list');
+      lobby.GameLobby.decorate(this.gameLobby);
+      $('wormy-game-list').onSelectGame = function(game) {
+        self.connectClient(new lobby.Client(game));
+      };
+    },
+
+    createGame: function() {
+      var self = this;
+      var host = new lobby.Host('ws://flackr-dev.wat:9999/', parseInt($('game-port').value));
+      window.server = new wormy.Server(host, $('game-name').value);
+      host.addEventListener('ready', function(address) {
+        self.connectClient(new lobby.Client(address));
+      });
     },
 
     colourizeImageData: function(data, oldColour, colour) {
@@ -463,11 +481,10 @@ wormy.Client = function() {
       }
     },
 
-    connect: function() {
-      var host = location.host;
-      if (host.indexOf(':8000') == -1)
-        host = host + ':8000';
-      this.socket = io.connect('http://' + host);
+    connectClient: function(connection) {
+      this.connection_ = connection;
+      this.socket = new LobbySocketAdapter(this.connection_);
+
       var self = this;
       this.socket.on('load', function(data) {
         self.stop();
