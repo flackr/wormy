@@ -179,8 +179,8 @@ var wormy = function() {
         newInterval = gameInterval * skew * offset;
         // Allowing anywhere between (-30%, +30%)
         newInterval =
-            Math.min(Math.max(newInterval, .8*this.targetGameInterval),
-                     1.2 * this.targetGameInterval);
+            Math.min(Math.max(newInterval, .65*this.targetGameInterval),
+                     1.35 * this.targetGameInterval);
         syncInfo = [(Math.round(((pf - frame)/(1000/this.targetGameInterval))*100000)/100), // Offset in milliseconds.
                     (Math.round(((actualFrames - expectedFrames)/expectedFrames)*10000)/100), // Skew %fps of target.
                     (Math.round(((this.targetGameInterval - gameInterval)/this.targetGameInterval+1)*10000)/100), // Old game speed.

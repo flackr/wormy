@@ -142,6 +142,7 @@ wormy.Client = function() {
           '' : 'none';
       $('create-game').addEventListener('click', this.createGame.bind(this));
       this.gameLobby = $('wormy-game-list');
+      lobby.GameLobby.setGameId('wormy');
       lobby.GameLobby.decorate(this.gameLobby);
       $('wormy-game-list').onSelectGame = function(game) {
         self.connectClient(new lobby.Client(game));
