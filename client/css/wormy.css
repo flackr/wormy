@@ -138,3 +138,7 @@ h2 {
   padding: 5px;
   width: 80%;
 }
+
+#wormy-game-list .game-list-name-column {
+  display: none;
+}

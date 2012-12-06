@@ -394,7 +394,7 @@ wormy.Client = function() {
     },
 
     pingServer: function() {
-      if (this.pingStart)
+      if (this.pingStart || !this.connection_)
         return;
       this.pingStart = (new Date()).getTime();
       this.socket.emit('frame-ping');
