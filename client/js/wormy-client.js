@@ -121,7 +121,8 @@ wormy.Client = function() {
           ctx.putImageData(data, 0, (i + 2) * spriteSize);
         }
         self.spriteSheet = spriteSheet;
-        self.redraw();
+        if (self.state_)
+          self.requestDraw();
       };
 
       var storage = (chrome && chrome.storage && chrome.storage.local) ||
@@ -169,7 +170,7 @@ wormy.Client = function() {
       var host = new lobby.Host($('wormy-game-list').getUrl().replace('http://', 'ws://'), parseInt($('game-port').value));
       window.server = new wormy.Server(host, $('game-name').value);
       host.addEventListener('ready', function(address) {
-        self.connectClient(new lobby.Client(address));
+        self.connectClient(host.createLocalClient());
       });
     },
 
@@ -576,6 +577,7 @@ wormy.Client = function() {
       this.canvas.style.marginLeft = ((w - canvasSize[0]) / 2) + 'px';
       var panelHeight = h - canvasSize[1];
       this.panel.style.height = panelHeight + 'px';
+      this.requestDraw();
     },
 
     computeViewingSize: function(w, h) {

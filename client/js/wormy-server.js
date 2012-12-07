@@ -23,6 +23,7 @@ wormy.Server = function() {
       gameId: 'wormy',
       description: name,
       status: 'running',
+      url: 'http://www.dynprojects.com/games/wormy/',
     });
 
     this.connection_.addEventListener('connection', this.onConnection.bind(this));
