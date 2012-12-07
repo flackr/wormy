@@ -82,8 +82,6 @@ var wormy = function() {
     return (factor-1.0)*prop+1.0;
   };
 
-  var gameInterval = 200;
-  var newInterval;
   var tailInitial = 5;
   var tailInc = 8;
 
@@ -108,6 +106,7 @@ var wormy = function() {
     this.moves_ = [];
     this.stepTimer_ = 0;
     this.lastStepTime_ = undefined;
+    this.gameInterval = Game.prototype.targetGameInterval;
   };
 
   Game.prototype = {
@@ -115,7 +114,7 @@ var wormy = function() {
 
     playAt: 4,
 
-    targetGameInterval: gameInterval,
+    targetGameInterval: 200,
 
     moveVectors: [[-1, 0], [0, 1], [1, 0], [0, -1]],
 
@@ -125,8 +124,21 @@ var wormy = function() {
       this.recomputeState();
       this.lastStepTime_ = undefined;
       this.lastSyncFrame = undefined;
-      newInterval = undefined;
-//      gameInterval = this.targetGameInterval;
+      this.newInterval = undefined;
+//      this.gameInterval = this.targetGameInterval;
+    },
+
+    loadLevel: function(level) {
+      this.stop();
+      this.foodCount = 0;
+      this.baseGameState_.l = getLevel(level);
+      for (var i = 0; i < this.baseGameState_.p.length; i++) {
+        if (this.baseGameState_.p[i].s == 0)
+          this.baseGameState_.p[i].s = 1;
+        this.baseGameState_.p[i].t = [];
+      }
+      this.baseGameState_.food = [];
+      this.state_ = clone(this.baseGameState_);
     },
 
     stop: function() {
@@ -135,11 +147,11 @@ var wormy = function() {
       this.started = false;
       this.lastStepTime_ = undefined;
       this.lastSyncFrame = undefined;
-      newInterval = undefined;
+      this.newInterval = undefined;
     },
 
     start: function() {
-      this.stepTimer_ = setInterval(bind(this, this.step), gameInterval);
+      this.stepTimer_ = setInterval(bind(this, this.step), this.gameInterval);
       this.started = true;
     },
 
@@ -162,7 +174,7 @@ var wormy = function() {
     getPartialFrame: function(frame, offset) {
       var pf = this.frame;
       if (this.lastStepTime_)
-        pf += Math.min(1, ((new Date()).getTime() - this.lastStepTime_) / gameInterval);
+        pf += Math.min(1, ((new Date()).getTime() - this.lastStepTime_) / this.gameInterval);
       return pf;
     },
 
@@ -176,15 +188,15 @@ var wormy = function() {
         var skew = adjust(actualFrames / expectedFrames, 0.7);
         // Add in skew to reach server frame at next sync.
         var offset = adjust(expectedFrames / ((frame + expectedFrames) - pf), 0.7);
-        newInterval = gameInterval * skew * offset;
+        this.newInterval = this.gameInterval * skew * offset;
         // Allowing anywhere between (-30%, +30%)
-        newInterval =
-            Math.min(Math.max(newInterval, .65*this.targetGameInterval),
+        this.newInterval =
+            Math.min(Math.max(this.newInterval, .65*this.targetGameInterval),
                      1.35 * this.targetGameInterval);
         syncInfo = [(Math.round(((pf - frame)/(1000/this.targetGameInterval))*100000)/100), // Offset in milliseconds.
                     (Math.round(((actualFrames - expectedFrames)/expectedFrames)*10000)/100), // Skew %fps of target.
-                    (Math.round(((this.targetGameInterval - gameInterval)/this.targetGameInterval+1)*10000)/100), // Old game speed.
-                    (Math.round(((this.targetGameInterval - newInterval)/this.targetGameInterval+1)*10000)/100)]; // New game speed.
+                    (Math.round(((this.targetGameInterval - this.gameInterval)/this.targetGameInterval+1)*10000)/100), // Old game speed.
+                    (Math.round(((this.targetGameInterval - this.newInterval)/this.targetGameInterval+1)*10000)/100)]; // New game speed.
 //        console.log('Game is off by ' + syncInfo[0] + 'ms (rate off by '+syncInfo[1]+'%) adjusting game speed to '+syncInfo[3]+'%');
       }
       this.lastSyncFrame = [frame, pf];
@@ -200,11 +212,11 @@ var wormy = function() {
 
     step: function() {
       this.lastStepTime_ = (new Date()).getTime();
-      if (newInterval) {
-        gameInterval = newInterval;
+      if (this.newInterval) {
+        this.gameInterval = this.newInterval;
         clearInterval(this.stepTimer_);
-        this.stepTimer_ = setInterval(bind(this, this.step), gameInterval);
-        newInterval = undefined;
+        this.stepTimer_ = setInterval(bind(this, this.step), this.gameInterval);
+        this.newInterval = undefined;
       }
       // Add new frame for current moves.
       this.moves_.push([]);

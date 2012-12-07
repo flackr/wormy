@@ -170,16 +170,7 @@ wormy.Server = function() {
 
     loadLevel: function(level) {
       this.level = level;
-      this.foodCount = 0;
-      this.stop();
-      this.baseGameState_.l = getLevel(level);
-      for (var i = 0; i < this.baseGameState_.p.length; i++) {
-        if (this.baseGameState_.p[i].s == 0)
-          this.baseGameState_.p[i].s = 1;
-        this.baseGameState_.p[i].t = [];
-      }
-      this.baseGameState_.food = [];
-      this.state_ = clone(this.baseGameState_);
+      wormy.Game.prototype.loadLevel.call(this, level);
       this.moves_ = [];
       while (this.moves_.length < this.playAt + 1)
         this.moves_.push([]);

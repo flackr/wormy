@@ -59,7 +59,7 @@ wormy.Client = function() {
   var spriteColour = '#ff1de0';
 
   // Controls are keyCode values for Up, Right, Down, Left, Join, Quit.
-  var controls = [[38, 39, 40, 37, 32, 27],
+  var controls = [[38, 39, 40, 37, 13, 8],
                   [87, 68, 83, 65, 69, 81],
                   [73, 76, 75, 74, 79, 85]];
 
@@ -89,6 +89,7 @@ wormy.Client = function() {
 
     this.initialize();
     this.layout();
+    this.loadLevel(1);
     this.showDialog($('lobby'));
 
     window.addEventListener('resize', bind(this, this.layout));
@@ -120,6 +121,7 @@ wormy.Client = function() {
           ctx.putImageData(data, 0, (i + 2) * spriteSize);
         }
         self.spriteSheet = spriteSheet;
+        self.redraw();
       };
 
       var storage = (chrome && chrome.storage && chrome.storage.local) ||
@@ -147,6 +149,19 @@ wormy.Client = function() {
       $('wormy-game-list').onSelectGame = function(game) {
         self.connectClient(new lobby.Client(game));
       };
+    },
+
+    disconnect: function() {
+      if (this.connection_) {
+        this.stop();
+        this.connection_.disconnect();
+        this.showDialog($('lobby'));
+      }
+      if (window.server) {
+        server.stop();
+        server.connection_.disconnect();
+        delete window.server;
+      }
     },
 
     createGame: function() {
@@ -354,6 +369,9 @@ wormy.Client = function() {
       if (e.keyCode == 82) {
         this.flags.retro = !this.flags.retro;
         this.canvasState = null;
+      } else if (e.keyCode == 27) {
+        this.stop();
+        this.disconnect();
       } else {
         for (var i = 0; i < controls.length; i++) {
           if (this.localPlayers_[i].w >= 0) {
