@@ -124,7 +124,7 @@ wormy.Client = function() {
         self.redraw();
       };
 
-      var storage = (chrome && chrome.storage && chrome.storage.local) ||
+      var storage = (window.chrome && chrome.storage && chrome.storage.local) ||
           window.localStorage;
       if (typeof(Storage)!=="undefined" && storage) {
         for (var i = 0; i < this.localPlayers_.length; i++) {
