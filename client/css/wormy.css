@@ -169,6 +169,10 @@ h2 {
   display: none;
 }
 
+#wormy-game-list > div:first-child {
+  display: none;
+}
+
 .game-entry-header {
   background: none !important;
 }
