@@ -206,6 +206,11 @@ wormy.Client = function() {
     initializeDialog: function(dialog) {
       if (dialog.getAttribute('ready'))
         return true;
+      // Touches on a dialog should be allowed to turn into mouse events. Stop
+      // the propagation so the main handler doesn't catch the event.
+      dialog.addEventListener('touchstart', function(evt) {
+        evt.stopPropagation();
+      });
       var tabContainer = dialog.querySelector('.tabs');
       if (tabContainer) {
         var enabledTabs = 0;
