@@ -161,6 +161,7 @@ wormy.Client = function() {
       this.gameLobby = $('wormy-game-list');
       lobby.GameLobby.setGameId('wormy');
       lobby.GameLobby.decorate(this.gameLobby);
+      this.gameLobby.setColorScheme(lobby.GameLobby.ColorScheme.LIGHT_ON_DARK);
       $('wormy-game-list').onSelectGame = function(game) {
         self.connectClient(new lobby.Client(game));
       };

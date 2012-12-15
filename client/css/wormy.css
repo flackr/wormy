@@ -233,18 +233,8 @@ body.touch #dpad {
   display: none;
 }
 
-.game-entry-header {
-  background: none !important;
-}
-
 .game-entry-header > * {
   border-bottom: 1px solid #ccc !important;
-}
-
-.game-status-flags > div {
-  -webkit-filter: invert(1);
-  -moz-filter: invert(1);
-  filter: invert(1);
 }
 
 input, button {
@@ -257,6 +247,5 @@ input, button {
 }
 
 .game-entry + .game-entry:hover {
-  background: rgba(0, 0, 100, 0.3) !important;
   font-weight: normal !important;
 }
