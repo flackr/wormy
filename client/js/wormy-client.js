@@ -141,8 +141,8 @@ wormy.Client = function() {
         }
       }
 
-      $('create-game-dialog').style.display = lobby.serverCapable() ?
-          '' : 'none';
+      if (!lobby.serverCapable())
+        $('create-game-tab').setAttribute('disabled', true);
       $('create-game').addEventListener('click', this.createGame.bind(this));
       this.gameLobby = $('wormy-game-list');
       lobby.GameLobby.setGameId('wormy');
@@ -201,8 +201,42 @@ wormy.Client = function() {
       }
     },
 
-    showDialog: function(dialog) {
-      if (!this.dialogListener) {
+    initializeDialog: function(dialog) {
+      if (dialog.getAttribute('ready'))
+        return true;
+      var tabContainer = dialog.querySelector('.tabs');
+      if (tabContainer) {
+        var enabledTabs = 0;
+        var tabs = tabContainer.children;
+        for (var i = 0; i < tabs.length; ++i) {
+          if (tabs[i].getAttribute('disabled'))
+            dialog.children[i + 1].style.display = 'none';
+          else
+            enabledTabs++;
+        }
+        if (enabledTabs <= 1)
+          tabContainer.style.display = 'none';
+
+        var setActiveTab = function(index) {
+          // Set classes
+          for (var i = 0; i < tabs.length; ++i) {
+            if (i == index) continue;
+            tabs[i].removeAttribute('active');
+            dialog.children[i + 1].style.display = 'none';
+          }
+          tabs[index].setAttribute('active', true);
+          dialog.children[index + 1].style.display = '';
+        };
+        for (var i = 0; i < tabs.length; ++i)
+          tabs[i].addEventListener('click', setActiveTab.bind(null, i));
+        setActiveTab(0);
+      }
+      dialog.setAttribute('ready', true);
+    },
+
+    showDialog: function(dialog, autoHide) {
+      this.initializeDialog(dialog);
+      if (!dialog.listeners && autoHide) {
         var self = this;
         var stopProp = function(e) {
           e.stopPropagation();
@@ -228,10 +262,9 @@ wormy.Client = function() {
           }
         }
       }
+      if (this.dialog)
+        this.hideDialog();
       $('dialogs').removeAttribute('hidden');
-      if (this.dialog) {
-        this.dialog.setAttribute('hidden', true);
-      }
       this.dialog = dialog;
       this.dialog.removeAttribute('hidden');
       this.dialog.focus();
@@ -501,7 +534,7 @@ wormy.Client = function() {
     },
 
     connectClient: function(connection) {
-      this.showDialog($('instructions'));
+      this.showDialog($('instructions'), true);
       this.connection_ = connection;
       this.socket = new LobbySocketAdapter(this.connection_);
 

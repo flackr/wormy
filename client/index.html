@@ -18,68 +18,77 @@
 <body>
 <div id="dialogs" hidden>
   <div id="lobby" class="dialog" hidden>
-    <div id="create-game-dialog">
-      Name: <input type="text" id="game-name" value="A wormy game.">
-      Port: <input type="text" id="game-port" value="9997">
-      <button id="create-game">Create</button>
+    <div class="tabs">
+      <div>Game list</div>
+      <div id="create-game-tab">Create game</div>
     </div>
     <div id="wormy-game-list"></div>
+    <div>
+      Name: <input type="text" id="game-name" value="A wormy game."><br>
+      Port: <input type="text" id="game-port" value="9997"><br>
+      <button id="create-game">Create</button>
+    </div>
   </div>
   <div id="instructions" class="dialog" hidden>
-    <h1>Wormy</h1>
-    <p>Wormy is a game of strategy and timing. Control your worm to try to eat the most food and grow longer than any of the other worms. Win the level by growing to 100 units long and 3 times longer than your competitors.</p>
-    <h2>Controls</h2>
-    <div class="table controls">
-      <div class="header">
-        <div>Name:</div>
-        <div><input type="text" id="name0" size="10" value="Sammy"></div>
-        <div><input type="text" id="name1" size="10" value="Tommy"></div>
-        <div><input type="text" id="name2" size="10" value="Billy"></div>
-      </div>
-      <div>
-        <div>Change direction:</div>
-
-        <!-- Player 1 -->
-        <div>
-          <table class="directionkeys">
-            <tr><td class="empty"></td><td>Up</td><td class="empty"></td></tr>
-            <tr><td>Left</td><td>Down</td><td>Right</td></tr>
-          </table>
-        </div>
-
-        <!-- Player 2 -->
-        <div>
-          <table class="directionkeys">
-            <tr><td class="empty"></td><td>W</td><td class="empty"></td></tr>
-            <tr><td>A</td><td>S</td><td>D</td></tr>
-          </table>
-        </div>
-
-        <!-- Player 3 -->
-        <div>
-          <table class="directionkeys">
-            <tr><td class="empty"></td><td>I</td><td class="empty"></td></tr>
-            <tr><td>J</td><td>K</td><td>L</td></tr>
-          </table>
-        </div>
-      </div>
-      <div>
-        <div>Enter game:</div>
-        <div>Enter</div>
-        <div>E</div>
-        <div>O</div>
-      </div>
-      <div>
-        <div>Leave game:</div>
-        <div>Backspace</div>
-        <div>Q</div>
-        <div>U</div>
-      </div>
+    <div class="tabs">
+      <div>Instructions</div>
     </div>
-    <p>You can change your player names above and then press [Enter] or
-    click/tap outside this dialog to dismiss these instructions. Press 'R' to
-    toggle retro mode (old style graphics). Press Escape at any time to return
-    to the lobby.</p>
+    <div>
+      <h1>Wormy</h1>
+      <p>Wormy is a game of strategy and timing. Control your worm to try to eat the most food and grow longer than any of the other worms. Win the level by growing to 100 units long and 3 times longer than your competitors.</p>
+      <h2>Controls</h2>
+      <div class="table controls">
+        <div class="header">
+          <div>Name:</div>
+          <div><input type="text" id="name0" size="10" value="Sammy"></div>
+          <div><input type="text" id="name1" size="10" value="Tommy"></div>
+          <div><input type="text" id="name2" size="10" value="Billy"></div>
+        </div>
+        <div>
+          <div>Change direction:</div>
+
+          <!-- Player 1 -->
+          <div>
+            <table class="directionkeys">
+              <tr><td class="empty"></td><td>Up</td><td class="empty"></td></tr>
+              <tr><td>Left</td><td>Down</td><td>Right</td></tr>
+            </table>
+          </div>
+
+          <!-- Player 2 -->
+          <div>
+            <table class="directionkeys">
+              <tr><td class="empty"></td><td>W</td><td class="empty"></td></tr>
+              <tr><td>A</td><td>S</td><td>D</td></tr>
+            </table>
+          </div>
+
+          <!-- Player 3 -->
+          <div>
+            <table class="directionkeys">
+              <tr><td class="empty"></td><td>I</td><td class="empty"></td></tr>
+              <tr><td>J</td><td>K</td><td>L</td></tr>
+            </table>
+          </div>
+        </div>
+        <div>
+          <div>Enter game:</div>
+          <div>Enter</div>
+          <div>E</div>
+          <div>O</div>
+        </div>
+        <div>
+          <div>Leave game:</div>
+          <div>Backspace</div>
+          <div>Q</div>
+          <div>U</div>
+        </div>
+      </div>
+      <p>You can change your player names above and then press [Enter] or
+      click/tap outside this dialog to dismiss these instructions. Press 'R' to
+      toggle retro mode (old style graphics). Press Escape at any time to return
+      to the lobby.</p>
+    </div>
   </div>
 </div>
 <div id="game">

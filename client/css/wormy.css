@@ -39,8 +39,34 @@ body {
   margin-top: 20px;
   margin-left: auto;
   margin-right: auto;
-  padding: 15px;
   width: 500px;
+}
+
+#dialogs .dialog > div {
+  margin: 15px;
+}
+
+#dialogs .dialog > .tabs {
+  border-bottom: 1px solid #ccc;
+  display: -webkit-box;
+  display: -moz-box;
+  display: box;
+  margin: 3px 0 0 0;
+}
+
+.tabs > div {
+  border: 1px solid #ccc;
+  margin-left: 3px;
+  margin-bottom: -1px;
+  padding: 3px;
+}
+
+.tabs > div[active] {
+  border-bottom: 1px solid #555;
+}
+
+.tabs > div[disabled] {
+  display: none;
 }
 
 h1, h2 {
