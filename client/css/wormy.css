@@ -156,6 +156,66 @@ h2 {
   white-space: nowrap;
 }
 
+#dpad {
+  bottom: 50px;
+  position: absolute;
+  right: 50px;
+  display: none;
+  height: 165px;
+  width: 165px;
+  -webkit-transform: rotate(45deg);
+  -moz-transform: rotate(45deg);
+  transform: rotate(45deg);
+  z-index: 3;
+}
+
+body.touch #dpad {
+  display: table;
+}
+
+#dpad > div {
+  display: table-row;
+}
+
+#dpad > div > div {
+  display: table-cell;
+  border: 3px solid rgba(0, 0, 0, 0.4);
+  vertical-align: middle;
+}
+
+#dpad > div > div[active] {
+  background-color: rgba(200, 200, 200, 0.4);
+}
+
+#dpad > div > div > div {
+  width: 40px;
+  height: 40px;
+  margin: auto;
+  border: 5px solid rgba(240, 240, 240, 0.5);
+}
+
+#dpad .up > div {
+  border-bottom: none;
+  border-right: none;
+}
+#dpad .right > div {
+  border-bottom: none;
+  border-left: none;
+}
+#dpad .left > div {
+  border-right: none;
+  border-top: none;
+}
+#dpad .down > div {
+  border-left: none;
+  border-top: none;
+}
+
+#dpad.left {
+  left: 50px;
+  right: auto;
+}
+
 #gameinfo .dialog {
   margin-left: auto;
   margin-right: auto;

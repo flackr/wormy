@@ -94,7 +94,19 @@ wormy.Client = function() {
 
     window.addEventListener('resize', bind(this, this.layout));
     document.addEventListener('keydown', bind(this, this.handleKeyDown_));
-    document.addEventListener('touchstart', bind(this, this.handleTouchStart_));
+    var dpad = $('dpad');
+    var dpadButtons = [
+        dpad.querySelector('.up'),
+        dpad.querySelector('.right'),
+        dpad.querySelector('.down'),
+        dpad.querySelector('.left')
+    ];
+
+    document.body.addEventListener('touchstart', bind(this, this.handleTouchStart_));
+    for (var i = 0; i < dpadButtons.length; i++) {
+      dpadButtons[i].addEventListener('touchstart', bind(this, this.handleTouchStartButton_, dpadButtons[i], i));
+      dpadButtons[i].addEventListener('touchend', bind(this, this.handleTouchEndButton_, dpadButtons[i], i));
+    }
     document.addEventListener('visibilitychange', bind(this, this.handleBackground_));
     document.addEventListener('webkitvisibilitychange', bind(this, this.handleBackground_));
     document.addEventListener('mozvisibilitychange', bind(this, this.handleBackground_));
@@ -206,9 +218,12 @@ wormy.Client = function() {
     initializeDialog: function(dialog) {
       if (dialog.getAttribute('ready'))
         return true;
+      var self = this;
       // Touches on a dialog should be allowed to turn into mouse events. Stop
       // the propagation so the main handler doesn't catch the event.
       dialog.addEventListener('touchstart', function(evt) {
+        document.body.classList.add('touch');
+        self.handleTouchPositionDpad_(evt);
         evt.stopPropagation();
       });
       var tabContainer = dialog.querySelector('.tabs');
@@ -371,6 +386,8 @@ wormy.Client = function() {
     },
 
     handleTouchStart_: function(e) {
+      document.body.classList.add('touch');
+      this.handleTouchPositionDpad_(e);
       e.preventDefault();
       if (e.touches.length == 1) {
         this.handlePointerAt(e.touches[0].pageX, e.touches[0].pageY);
@@ -378,42 +395,49 @@ wormy.Client = function() {
     },
 
     handlePointerAt: function(x, y) {
+      if (!this.connection_) return;
       var i = 0;
       if (this.localPlayers_[i].w >= 0) {
         if (this.state_.p[this.localPlayers_[i].w].s == 1) {
           this.resetWorm_(this.localPlayers_[i].w);
           return;
         }
-        var cx = this.canvas.offsetWidth / 2 + this.canvas.offsetLeft;
-        var cy = this.canvas.offsetHeight / 2 + this.canvas.offsetTop;
-        var dx = x - cx;
-        var dy = y - cy;
-        if (Math.abs(dx) > Math.abs(dy)) {
-          if (dx > 0)
-            this.handleDirection(i, 1);
-          else
-            this.handleDirection(i, 3);
-        } else {
-          if (dy > 0)
-            this.handleDirection(i, 2);
-          else
-            this.handleDirection(i, 0);
-        }
       } else {
         this.socket.emit('start', [i, $('name'+i).value]);
+        return;
       }
+    },
+
+    handleTouchPositionDpad_: function(evt) {
+      if (evt.touches.length != 1) return;
+      if (evt.touches[0].pageX > document.body.clientWidth / 2) {
+        $('dpad').classList.remove('left');
+      } else {
+        $('dpad').classList.add('left');
+      }
+    },
+
+    handleTouchStartButton_: function(el, direction, evt) {
+      this.handleDirection(0, direction);
+      el.setAttribute('active');
+      evt.preventDefault();
+    },
+
+    handleTouchEndButton_: function(el, direction, evt) {
+      el.removeAttribute('active');
     },
 
     handleKeyDown_: function(e) {
       if (this.dialog)
         return;
+      document.body.classList.remove('touch');
       if (e.keyCode == 82) {
         this.flags.retro = !this.flags.retro;
         this.canvasState = null;
       } else if (e.keyCode == 27) {
         this.stop();
         this.disconnect();
-      } else {
+      } else if (this.connection_) {
         for (var i = 0; i < controls.length; i++) {
           if (this.localPlayers_[i].w >= 0) {
             for (var j = 0; j < controls[i].length; j++) {
