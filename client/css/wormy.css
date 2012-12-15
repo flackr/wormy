@@ -168,3 +168,31 @@ h2 {
 #wormy-game-list .game-list-name-column {
   display: none;
 }
+
+.game-entry-header {
+  background: none !important;
+}
+
+.game-entry-header > * {
+  border-bottom: 1px solid #ccc !important;
+}
+
+.game-status-flags > div {
+  -webkit-filter: invert(1);
+  -moz-filter: invert(1);
+  filter: invert(1);
+}
+
+input, button {
+  background: none;
+  color: white;
+}
+
+.game-entry + .game-entry{
+  cursor: pointer;
+}
+
+.game-entry + .game-entry:hover {
+  background: rgba(0, 0, 100, 0.3) !important;
+  font-weight: normal !important;
+}
