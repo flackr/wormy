@@ -121,8 +121,10 @@ wormy.Client = function() {
           ctx.putImageData(data, 0, (i + 2) * spriteSize);
         }
         self.spriteSheet = spriteSheet;
-        if (self.state_)
+        if (self.state_) {
+          self.canvasState = null;
           self.requestDraw();
+        }
       };
 
       var storage = (window.chrome && chrome.storage && chrome.storage.local) ||
@@ -803,5 +805,5 @@ wormy.Client = function() {
 }();
 
 document.addEventListener('DOMContentLoaded', function() {
-  new wormy.Client();
+  window.client = new wormy.Client();
 });
