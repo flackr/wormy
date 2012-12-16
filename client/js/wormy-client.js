@@ -422,6 +422,7 @@ wormy.Client = function() {
       this.handleDirection(0, direction);
       el.setAttribute('active');
       evt.preventDefault();
+      evt.stopPropagation();
     },
 
     handleTouchEndButton_: function(el, direction, evt) {
