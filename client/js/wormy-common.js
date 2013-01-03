@@ -110,13 +110,25 @@ var wormy = function() {
   };
 
   Game.prototype = {
-    buffer: 14,
 
-    playAt: 4,
+    moveInterval: 3,
 
-    targetGameInterval: 200,
+    buffer: 42,
+
+    playAt: 12,
+
+    targetGameInterval: 70,
 
     moveVectors: [[-1, 0], [0, 1], [1, 0], [0, -1]],
+
+    powers: [{
+        name: 'none', // Placeholder for no power.
+      }, {
+        name: 'speed',
+        duration: 2*50, // 50 squares of fast movement when fully charged.
+        recharge: 3*100 // 100 squares of regular movement to recharge.
+      }
+    ],
 
     reset: function(state) {
       this.baseGameState_ = state.base;
@@ -185,14 +197,14 @@ var wormy = function() {
         var actualFrames = pf - this.lastSyncFrame[1];
         var expectedFrames = frame - this.lastSyncFrame[0];
         // Compute the ratio to be on time.
-        var skew = adjust(actualFrames / expectedFrames, 0.7);
+        var skew = adjust(actualFrames / expectedFrames, 0.8);
         // Add in skew to reach server frame at next sync.
-        var offset = adjust(expectedFrames / ((frame + expectedFrames) - pf), 0.7);
+        var offset = adjust(expectedFrames / ((frame + expectedFrames) - pf), 0.8);
         this.newInterval = this.gameInterval * skew * offset;
         // Allowing anywhere between (-30%, +30%)
         this.newInterval =
-            Math.min(Math.max(this.newInterval, .65*this.targetGameInterval),
-                     1.35 * this.targetGameInterval);
+            Math.min(Math.max(this.newInterval, .75*this.targetGameInterval),
+                     1.25 * this.targetGameInterval);
         syncInfo = [(Math.round(((pf - frame)/(1000/this.targetGameInterval))*100000)/100), // Offset in milliseconds.
                     (Math.round(((actualFrames - expectedFrames)/expectedFrames)*10000)/100), // Skew %fps of target.
                     (Math.round(((this.targetGameInterval - this.gameInterval)/this.targetGameInterval+1)*10000)/100), // Old game speed.
@@ -211,6 +223,7 @@ var wormy = function() {
     },
 
     step: function() {
+      var changed = false;
       this.lastStepTime_ = (new Date()).getTime();
       if (this.newInterval) {
         this.gameInterval = this.newInterval;
@@ -257,6 +270,8 @@ var wormy = function() {
           // Only change direction if alive.
           if (g.p[md[i].p].s == 0)
             g.p[md[i].p].t[0][2] = md[i].d;
+        } else if (md[i].t == 'p') { // Use power.
+          g.p[md[i].p].f = md[i].f;
         } else if (md[i].t == 'a') { // Add player.
           this.clearTail(g, md[i].p);
           g.p[md[i].p] = {
@@ -264,6 +279,9 @@ var wormy = function() {
             l: tailInitial,  // Length
             s: 0,  // Start alive
             n: md[i].n, // Player name
+            e: 0,  // Energy
+            p: 1, // Power (speed)
+            f: 0  // Using power?
           };
           g.l[g.p[md[i].p].t[0][0]][g.p[md[i].p].t[0][1]] = md[i].p + 3;
         } else if (md[i].t == 'd') { // Disconnect.
@@ -283,6 +301,9 @@ var wormy = function() {
               t: [md[i].l],
               l: tailInitial,
               s: 0,
+              e: 0,
+              p: 1,
+              f: 1
             };
             g.l[g.p[md[i].p].t[0][0]][g.p[md[i].p].t[0][1]] = md[i].p + 3;
           }
@@ -299,9 +320,34 @@ var wormy = function() {
       }
       var w = g.l[0].length;
       var h = g.l.length;
-      var offset = g.f % g.p.length;
+      var offset = Math.floor(g.f / this.moveInterval) % g.p.length;
       for (var i = 0; i < g.p.length; i++) {
         var pi = (i + offset) % g.p.length;
+        if (g.p[pi].p) {
+          if (g.p[pi].e <= 0) {
+            g.p[pi].e = 0;
+            g.p[pi].f = 0;
+          }
+          if (g.p[pi].f) {
+            g.p[pi].e = Math.max(0,
+                g.p[pi].e - 1.0 / this.powers[g.p[pi].p].duration);
+          } else {
+            g.p[pi].e = Math.min(1,
+                g.p[pi].e + 1.0 / this.powers[g.p[pi].p].recharge);
+          }
+        } else {
+          g.p[pi].e = 0;
+        }
+
+        // Determine move frequency for current worm.
+        var moveInterval = this.moveInterval;
+        // When speeding move interval is reduced.
+        if (g.p[pi].p == 1 && g.p[pi].f)
+          moveInterval--;
+        g.p[pi].m = (g.f % moveInterval == 0) ? 1 : 0;
+        if (g.p[pi].m == 0)
+          continue;
+
         if (!g.p[pi].s) {
           var next = [(g.p[pi].t[0][0] + this.moveVectors[g.p[pi].t[0][2]][0] + h) % h,
                       (g.p[pi].t[0][1] + this.moveVectors[g.p[pi].t[0][2]][1] + w) % w,

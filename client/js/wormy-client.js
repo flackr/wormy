@@ -58,10 +58,10 @@ wormy.Client = function() {
   var spriteSize = 32;
   var spriteColour = '#ff1de0';
 
-  // Controls are keyCode values for Up, Right, Down, Left, Join, Quit.
-  var controls = [[38, 39, 40, 37, 13, 8],
-                  [87, 68, 83, 65, 69, 81],
-                  [73, 76, 75, 74, 79, 85]];
+  // Controls are keyCode values for Up, Right, Down, Left, Join, Quit, Power.
+  var controls = [[38, 39, 40, 37, 13, 8, 17],
+                  [87, 68, 83, 65, 69, 81, 90],
+                  [73, 76, 75, 74, 79, 85, 78]];
 
   function merge(a, b) {
     var r = {};
@@ -313,7 +313,13 @@ wormy.Client = function() {
     step: function() {
       wormy.Game.prototype.step.call(this);
       if (this.started) {
-        this.requestDraw();
+        for (var i = 0; i < this.state_.p.length; i++) {
+          // Only redraw if a worm moved.
+          if (this.state_.p[i].m) {
+            this.requestDraw();
+            break;
+          }
+        }
         this.dispatchQueuedCommands();
       }
     },
@@ -347,9 +353,13 @@ wormy.Client = function() {
 
     dispatchQueuedCommands: function() {
       for (var i = 0; i < this.localPlayers_.length; i++) {
-        if (this.localPlayers_[i].w >= 0 && this.localPlayers_[i].queue) {
-          this.handleDirection(i, this.localPlayers_[i].queue - 1);
-          this.localPlayers_[i].queue = 0;
+        if (this.localPlayers_[i].w >= 0 && // If this is a playing player
+            this.state_.p[this.localPlayers_[i].w].m) { // which has just moved
+          this.localPlayers_[i].d = 0;
+          if (this.localPlayers_[i].queue) { // and has a queued command.
+            this.handleDirection(i, this.localPlayers_[i].queue - 1);
+            this.localPlayers_[i].queue = 0;
+          }
         }
       }
     },
@@ -358,6 +368,7 @@ wormy.Client = function() {
     takeControl: function(playerNo, localNo) {
       this.localPlayers_[localNo].w = playerNo;
       this.localPlayers_[localNo].queue = 0;
+      this.localPlayers_[localNo].d = 0;
     },
 
     resetWorm_: function(worm) {
@@ -371,12 +382,12 @@ wormy.Client = function() {
           this.state_.p[this.localPlayers_[i].w].s != 0 ||
           this.state_.p[this.localPlayers_[i].w].t.length == 0)
         return;
-      if (this.localPlayers_[i].f == this.frame) {
+      if (this.localPlayers_[i].d) {
         this.localPlayers_[i].queue = j + 1;
       } else {
         if ((j + 2) % 4 == this.state_.p[this.localPlayers_[i].w].t[0][2])
           return;
-        this.localPlayers_[i].f = this.frame;
+        this.localPlayers_[i].d = 1;
         this.changeDirection(i, j);
       }
     },
@@ -456,6 +467,10 @@ wormy.Client = function() {
                 } else if (j == 5) { // Disconnect.
                   this.dispatchDelayedCommand({t: 'd', p: i});
                   this.localPlayers_[i].w = -1;
+                } else if (j == 6) { // Use power.
+                  this.dispatchImmediateCommand({
+                      t: 'p', p: this.localPlayers_[i].w,
+                      f: 1 - this.state_.p[this.localPlayers_[i].w].f});
                 }
               }
             }
@@ -567,7 +582,8 @@ wormy.Client = function() {
     },
 
     connectClient: function(connection) {
-      this.showDialog($('instructions'), true);
+      this.hideDialog();
+      setTimeout(this.showDialog.bind(this, $('instructions'), true), 200);
       this.connection_ = connection;
       this.socket = new LobbySocketAdapter(this.connection_);
 
@@ -685,7 +701,7 @@ wormy.Client = function() {
       // Minimap eventually?
       // this.draw(this.baseGameState_, 0, 0, 80, 50, 80, 50);
       this.updateScores();
-      if (this.frame % 15 == 0)
+      if (this.frame % 30 == 0)
         this.pingServer();
     },
 

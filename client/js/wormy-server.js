@@ -45,9 +45,9 @@ wormy.Server = function() {
 
     step: function() {
       wormy.Game.prototype.step.call(this);
-      if (this.frame % 10 == 0 && this.foodCount < this.computeMaxFood())
+      if (this.frame % 30 == 0 && this.foodCount < this.computeMaxFood())
         this.spawnFood();
-      if (this.frame % 20 == 0)
+      if (this.frame % 60 == 0)
         this.disconnectIdleWorms();
     },
 
