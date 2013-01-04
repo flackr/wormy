@@ -141,6 +141,15 @@ h2 {
   -moz-border-radius: 3px;
   border-radius: 3px;
   background-color: black;
+  position: relative;
+}
+
+.progress > * {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  position: absolute;
+  width: 0;
 }
 
 .progress > .bar {
@@ -149,7 +158,17 @@ h2 {
   -moz-border-radius: 3px;
   border-radius: 3px;
   height: 8px;
-  width: 0;
+  margin-top: -4px;
+}
+
+.progress > .energy-bar {
+  background-color: white;
+  -webkit-border-radius: 1px;
+  -moz-border-radius: 1px;
+  border-radius: 1px;
+  border: 1px solid black;
+  height: 4px;
+  margin-top: -2px;
 }
 
 .player span {

@@ -564,9 +564,14 @@ wormy.Client = function() {
       for (var i = 0; i < players.length; i++) {
         var pno = parseInt(players[i].getAttribute('number'));
         var progress = 0;
-        if (this.state_.p.length > pno && this.state_.p[pno].t)
+        var energy = 0;
+        if (this.state_.p.length > pno && this.state_.p[pno].t) {
           progress = this.state_.p[pno].t.length / goal;
+          energy = this.state_.p[pno].e;
+        }
         if (progress > 1) progress = 1;
+        var ebar = players[i].getElementsByClassName('energy-bar')[0];
+        ebar.style.width = Math.round(100 * energy) + '%';
         var pbar = players[i].getElementsByClassName('bar')[0];
         pbar.style.width = Math.round(100 * progress) + '%';
         players[i].progress = progress;

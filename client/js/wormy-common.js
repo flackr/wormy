@@ -284,7 +284,7 @@ var wormy = function() {
             s: 0,  // Start alive
             n: md[i].n, // Player name
             e: 0,  // Energy
-            p: 1, // Power (speed)
+            p: 0, // Power (none)
             f: 0  // Using power?
           };
           g.l[g.p[md[i].p].t[0][0]][g.p[md[i].p].t[0][1]][1] = md[i].p + 3;
@@ -306,7 +306,7 @@ var wormy = function() {
               l: tailInitial,
               s: 0,
               e: 0,
-              p: 1,
+              p: 0,
               f: 1
             };
             g.l[g.p[md[i].p].t[0][0]][g.p[md[i].p].t[0][1]][1] = md[i].p + 3;
@@ -367,6 +367,7 @@ var wormy = function() {
               if (g.food[j][0] == next[0] && g.food[j][1] == next[1]) {
                 g.p[pi].p = g.food[j][2];
                 g.p[pi].f = 0;
+                g.p[pi].e = 1;  // Start with full energy on picking up item.
                 g.food.splice(j, 1);
                 j--;
               }
