@@ -125,7 +125,7 @@ var wormy = function() {
         name: 'none', // Placeholder for no power.
       }, {
         name: 'speed',
-        duration: 2*100, // 100 squares of fast movement when fully charged.
+        duration: 2*50,  // 50 squares of fast movement when fully charged.
         recharge: 3*50   // 50 squares of regular movement to recharge.
       }, {
         name: 'burrow',
@@ -367,7 +367,7 @@ var wormy = function() {
               if (g.food[j][0] == next[0] && g.food[j][1] == next[1]) {
                 g.p[pi].p = g.food[j][2];
                 g.p[pi].f = 0;
-                g.p[pi].e = 1;  // Start with full energy on picking up item.
+                g.p[pi].e = 0;
                 g.food.splice(j, 1);
                 j--;
               }
