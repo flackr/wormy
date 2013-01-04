@@ -356,6 +356,7 @@ wormy.Client = function() {
     dispatchQueuedCommands: function() {
       for (var i = 0; i < this.localPlayers_.length; i++) {
         if (this.localPlayers_[i].w >= 0 && // If this is a playing player
+            this.state_.p[this.localPlayers_[i].w] && // in the game
             this.state_.p[this.localPlayers_[i].w].m) { // which has just moved
           this.localPlayers_[i].d = 0;
           if (this.localPlayers_[i].queue) { // and has a queued command.
@@ -387,7 +388,7 @@ wormy.Client = function() {
       if (this.localPlayers_[i].d) {
         this.localPlayers_[i].queue = j + 1;
       } else {
-        if ((j + 2) % 4 == this.state_.p[this.localPlayers_[i].w].t[0][2])
+        if ((j + 2) % 4 == this.state_.p[this.localPlayers_[i].w].t[0][3])
           return;
         this.localPlayers_[i].d = 1;
         this.changeDirection(i, j);
@@ -714,7 +715,7 @@ wormy.Client = function() {
           // state.
           while (this.canvasState.length > 0) {
             var pos = this.canvasState.pop();
-            var s = state.l[pos[0]][pos[1]];
+            var s = state.l[pos[0]][pos[1]][1];
             ctx.drawImage(spriteSheet, s == 1 ? spriteSize : 0, 0, spriteSize, spriteSize,
                           pos[1] * blockSize, pos[0] * blockSize, blockSize, blockSize);
           }
@@ -722,7 +723,7 @@ wormy.Client = function() {
           this.canvasState = [];
           for (var i = 0; i < x2 - x1; i++) {
             for (var j = 0; j < y2 - y1; j++) {
-              var s = state.l[y1 + j][x1 + i];
+              var s = state.l[y1 + j][x1 + i][1];
               if (s != 1) {
                 ctx.drawImage(spriteSheet, 0, 0, spriteSize, spriteSize,
                               i * blockSize, j * blockSize, blockSize, blockSize);
@@ -737,62 +738,67 @@ wormy.Client = function() {
         for (var i = 0; i < state.food.length; i++) {
           this.canvasState.push(state.food[i]);
           ctx.drawImage(spriteSheet,
-                        2 * spriteSize, 0, spriteSize, spriteSize,
+                        5 * spriteSize, (1 + state.food[i][2]) * spriteSize, spriteSize, spriteSize,
                         state.food[i][1] * blockSize, state.food[i][0] * blockSize, blockSize, blockSize);
         }
         // Then draw the worms.
-        for (var i = 0; i < state.p.length; i++) {
-          for (var j = 0; j < state.p[i].t.length; j++) {
-            ctx.save();
-            this.canvasState.push(state.p[i].t[j])
-            ctx.translate(state.p[i].t[j][1] * blockSize + blockSize/2,
-                          state.p[i].t[j][0] * blockSize + blockSize/2);
-            var rotate = state.p[i].t[j][2];
-            var sprite = 1;
-            if (j == 0) {
-              // If we are greater than 1 length, use rotation from previous
-              // piece to avoid continuity problems.
-              if (state.p[i].t.length > j + 1) {
-                rotate = state.p[i].t[j + 1][2];
+        for (var layer = 0; layer < 2; layer++) {
+          ctx.globalAlpha = layer == 0 ? 0.5 : 1;
+          for (var i = 0; i < state.p.length; i++) {
+            for (var j = 0; j < state.p[i].t.length; j++) {
+              if (state.p[i].t[j][2] != layer)
+                continue;
+              ctx.save();
+              this.canvasState.push(state.p[i].t[j])
+              ctx.translate(state.p[i].t[j][1] * blockSize + blockSize/2,
+                            state.p[i].t[j][0] * blockSize + blockSize/2);
+              var rotate = state.p[i].t[j][3];
+              var sprite = 1;
+              if (j == 0) {
+                // If we are greater than 1 length, use rotation from previous
+                // piece to avoid continuity problems.
+                if (state.p[i].t.length > j + 1) {
+                  rotate = state.p[i].t[j + 1][3];
+                }
+                if (rotate == 3)
+                  ctx.scale(1, -1);
+                if (state.p[i].s == 0)
+                  sprite = 3;
+                else
+                  sprite = 4;
+              } else if (j == state.p[i].t.length - 1) {
+                sprite = 0;
+              } else if (state.p[i].t[j + 1][3] != state.p[i].t[j][3]) {
+                sprite = 2;
+                if ((state.p[i].t[j][3] + 1) % 4 ==
+                        state.p[i].t[j + 1][3])
+                  rotate += 1;
+                else
+                  rotate += 2;
               }
-              if (rotate == 3)
-                ctx.scale(1, -1);
-              if (state.p[i].s == 0)
-                sprite = 3;
-              else
-                sprite = 4;
-            } else if (j == state.p[i].t.length - 1) {
-              sprite = 0;
-            } else if (state.p[i].t[j + 1][2] != state.p[i].t[j][2]) {
-              sprite = 2;
-              if ((state.p[i].t[j][2] + 1) % 4 ==
-                      state.p[i].t[j + 1][2])
-                rotate += 1;
-              else
-                rotate += 2;
-            }
-            ctx.rotate(Math.PI / 2 * rotate);
-            // As a special case we draw the tail sprite under the head for
-            // length 1 to avoid a discontinuous snake.
-            if (state.p[i].t.length == 1) {
-              var tailPos = [state.p[i].t[j][0], state.p[i].t[j][1]];
-              tailPos[0] -= this.moveVectors[state.p[i].t[j][2]][0];
-              tailPos[1] -= this.moveVectors[state.p[i].t[j][2]][1];
-              this.canvasState.push(tailPos);
+              ctx.rotate(Math.PI / 2 * rotate);
+              // As a special case we draw the tail sprite under the head for
+              // length 1 to avoid a discontinuous snake.
+              if (state.p[i].t.length == 1) {
+                var tailPos = [state.p[i].t[j][0], state.p[i].t[j][1]];
+                tailPos[0] -= this.moveVectors[state.p[i].t[j][3]][0];
+                tailPos[1] -= this.moveVectors[state.p[i].t[j][3]][1];
+                this.canvasState.push(tailPos);
+                ctx.drawImage(spriteSheet,
+                              0,
+                              (2 + i) * spriteSize, // Player
+                              spriteSize, spriteSize,
+                              -blockSize/2, blockSize/2,
+                              blockSize,blockSize);
+              }
               ctx.drawImage(spriteSheet,
-                            0,
+                            spriteSize * sprite,
                             (2 + i) * spriteSize, // Player
                             spriteSize, spriteSize,
-                            -blockSize/2, blockSize/2,
+                            -blockSize/2, -blockSize/2,
                             blockSize,blockSize);
+              ctx.restore();
             }
-            ctx.drawImage(spriteSheet,
-                          spriteSize * sprite,
-                          (2 + i) * spriteSize, // Player
-                          spriteSize, spriteSize,
-                          -blockSize/2, -blockSize/2,
-                          blockSize,blockSize);
-            ctx.restore();
           }
         }
       } else {
@@ -801,7 +807,7 @@ wormy.Client = function() {
           // state.
           while (this.canvasState.length > 0) {
             var pos = this.canvasState.pop();
-            var s = state.l[pos[0]][pos[1]];
+            var s = state.l[pos[0]][pos[1]][1];
             ctx.fillStyle = drawStyle[state.l[pos[0]][pos[1]]];
             ctx.fillRect(pos[1] * blockSize,
                          pos[0] * blockSize,
@@ -810,7 +816,7 @@ wormy.Client = function() {
           }
           for (var i = 0; i < state.food.length; i++) {
             this.canvasState.push(state.food[i]);
-            ctx.fillStyle = drawStyle[state.l[state.food[i][0]][state.food[i][1]]];
+            ctx.fillStyle = drawStyle[state.l[state.food[i][0]][state.food[i][1]][1]];
             ctx.fillRect(state.food[i][1] * blockSize,
                          state.food[i][0] * blockSize,
                          blockSize,
@@ -831,9 +837,9 @@ wormy.Client = function() {
           this.canvasState = [];
           for (var i = 0; i < x2 - x1; i++) {
             for (var j = 0; j < y2 - y1; j++) {
-              if (state.l[y1 + j][x1 + i] > 1)
+              if (state.l[y1 + j][x1 + i][1] > 1)
                 this.canvasState.push([y1 + j, x1 + i]);
-              ctx.fillStyle = drawStyle[state.l[y1 + j][x1 + i]];
+              ctx.fillStyle = drawStyle[state.l[y1 + j][x1 + i][1]];
               ctx.fillRect(i * blockSize,
                            j * blockSize,
                            blockSize,

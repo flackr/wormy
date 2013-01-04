@@ -84,7 +84,8 @@ wormy.Server = function() {
         this.deliverDelayedCommand({
             t: 'f',
             fx: l[1],
-            fy: l[0]});
+            fy: l[0],
+            ft: Math.floor(Math.random() * (this.powers.length - 1)) + 1});
       }
     },
 
@@ -193,10 +194,10 @@ wormy.Server = function() {
         var h = this.state_.l.length;
         for (j = 0; j < runLength; j++) {
           if (this.state_.l[(y + j*this.moveVectors[d][0] + h) % h]
-                           [(x + j*this.moveVectors[d][1] + w) % w] != 0) break;
+                           [(x + j*this.moveVectors[d][1] + w) % w][1] != 0) break;
         }
         if (j == runLength) {
-          return [y, x, d];
+          return [y, x, 1, d];
         }
       }
       return null;

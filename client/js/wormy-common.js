@@ -125,8 +125,12 @@ var wormy = function() {
         name: 'none', // Placeholder for no power.
       }, {
         name: 'speed',
-        duration: 2*50, // 50 squares of fast movement when fully charged.
-        recharge: 3*100 // 100 squares of regular movement to recharge.
+        duration: 2*100, // 100 squares of fast movement when fully charged.
+        recharge: 3*50   // 50 squares of regular movement to recharge.
+      }, {
+        name: 'burrow',
+        duration: 2*20,
+        recharge: 3*50
       }
     ],
 
@@ -259,7 +263,7 @@ var wormy = function() {
       if (g.p.length <= playerNo)
         return;
       for (var i = 0; i < g.p[playerNo].length; i++) {
-        g.l[g.p[playerNo].t[i][0]][g.p[playerNo].t[i][1]] = 0;
+        g.l[g.p[playerNo].t[i][0]][g.p[playerNo].t[i][1]][g.p[playerNo].t[i][2]] = 0;
       }
     },
 
@@ -269,7 +273,7 @@ var wormy = function() {
         if (md[i].t == 'm') { // Movement
           // Only change direction if alive.
           if (g.p[md[i].p].s == 0)
-            g.p[md[i].p].t[0][2] = md[i].d;
+            g.p[md[i].p].t[0][3] = md[i].d;
         } else if (md[i].t == 'p') { // Use power.
           g.p[md[i].p].f = md[i].f;
         } else if (md[i].t == 'a') { // Add player.
@@ -283,7 +287,7 @@ var wormy = function() {
             p: 1, // Power (speed)
             f: 0  // Using power?
           };
-          g.l[g.p[md[i].p].t[0][0]][g.p[md[i].p].t[0][1]] = md[i].p + 3;
+          g.l[g.p[md[i].p].t[0][0]][g.p[md[i].p].t[0][1]][1] = md[i].p + 3;
         } else if (md[i].t == 'd') { // Disconnect.
           if (g.p.length > md[i].p) {
             g.p[md[i].p].s = 2;
@@ -305,16 +309,16 @@ var wormy = function() {
               p: 1,
               f: 1
             };
-            g.l[g.p[md[i].p].t[0][0]][g.p[md[i].p].t[0][1]] = md[i].p + 3;
+            g.l[g.p[md[i].p].t[0][0]][g.p[md[i].p].t[0][1]][1] = md[i].p + 3;
           }
         } else if (md[i].t == 'f') {
           // FOOD!
-          if (g.l[md[i].fy][md[i].fx] != 0) {
+          if (g.l[md[i].fy][md[i].fx][1] != 0) {
             if (is_final)
               this.foodEaten(-1);
           } else {
-            g.l[md[i].fy][md[i].fx] = 2;
-            g.food.push([md[i].fy, md[i].fx]);
+            g.l[md[i].fy][md[i].fx][1] = 2;
+            g.food.push([md[i].fy, md[i].fx, md[i].ft]);
           }
         }
       }
@@ -349,14 +353,20 @@ var wormy = function() {
           continue;
 
         if (!g.p[pi].s) {
-          var next = [(g.p[pi].t[0][0] + this.moveVectors[g.p[pi].t[0][2]][0] + h) % h,
-                      (g.p[pi].t[0][1] + this.moveVectors[g.p[pi].t[0][2]][1] + w) % w,
-                      g.p[pi].t[0][2]];
-          if (g.l[next[0]][next[1]] == 2) {
-            g.l[next[0]][next[1]] = 0;
+          var next = [(g.p[pi].t[0][0] + this.moveVectors[g.p[pi].t[0][3]][0] + h) % h,
+                      (g.p[pi].t[0][1] + this.moveVectors[g.p[pi].t[0][3]][1] + w) % w,
+                      1, // Level 1 by default.
+                      g.p[pi].t[0][3]];
+          // If burrowed, next position is underground.
+          if (g.p[pi].p == 2 && g.p[pi].f)
+            next[2] = 0;
+          if (g.l[next[0]][next[1]][next[2]] == 2) {
+            g.l[next[0]][next[1]][1] = 0;
             g.p[pi].l += tailInc;
             for (var j = 0; j < g.food.length; j++) {
               if (g.food[j][0] == next[0] && g.food[j][1] == next[1]) {
+                g.p[pi].p = g.food[j][2];
+                g.p[pi].f = 0;
                 g.food.splice(j, 1);
                 j--;
               }
@@ -365,18 +375,18 @@ var wormy = function() {
               this.foodEaten(pi);
             }
           }
-          if (g.l[next[0]][next[1]]) {
+          if (g.l[next[0]][next[1]][next[2]]) {
             g.p[pi].s = 1;
             g.p[pi].l = 0;
           } else {
             g.p[pi].t.splice(0, 0, next);
-            g.l[next[0]][next[1]] = pi + 3;
+            g.l[next[0]][next[1]][next[2]] = pi + 3;
           }
         }
         if (g.p[pi].t.length && (g.p[pi].s ||
                                 g.p[pi].t.length > g.p[pi].l)) {
           var tail = g.p[pi].t.pop();
-          g.l[tail[0]][tail[1]] = 0;
+          g.l[tail[0]][tail[1]][tail[2]] = 0;
         }
       }
       g.f++;

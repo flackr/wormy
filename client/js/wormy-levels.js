@@ -3,7 +3,8 @@ function Map(w, h) {
   for (var i = 0; i < h; i++) {
     this.data.push([]);
     for (var j = 0; j < w; j++) {
-      this.data[i].push((i == 0 || j == 0 | i == h - 1 | j == w - 1 ? 1 : 0));
+      this.data[i].push([0, 0, 0]);
+      this.data[i][j][1] = (i == 0 || j == 0 | i == h - 1 | j == w - 1 ? 1 : 0);
     }
   }
 }
@@ -12,7 +13,7 @@ Map.prototype = {
   drawLine: function(x, y, dx, dy, l, c) {
     if (c === undefined) c = 1;
     for (var i = 0; i < l; i++) {
-      this.data[y][x] = c;
+      this.data[y][x][1] = c;
       x += dx;
       y += dy;
     }
