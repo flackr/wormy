@@ -141,10 +141,13 @@ h2 {
   -moz-border-radius: 3px;
   border-radius: 3px;
   background-color: black;
+}
+
+.progress > div {
   position: relative;
 }
 
-.progress > * {
+.progress > div > * {
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;
   box-sizing: border-box;
@@ -152,7 +155,7 @@ h2 {
   width: 0;
 }
 
-.progress > .bar {
+.progress > div > .bar {
   background-color: red;
   -webkit-border-radius: 3px;
   -moz-border-radius: 3px;
@@ -161,7 +164,7 @@ h2 {
   margin-top: -4px;
 }
 
-.progress > .energy-bar {
+.progress > div > .energy-bar {
   background-color: white;
   -webkit-border-radius: 1px;
   -moz-border-radius: 1px;
