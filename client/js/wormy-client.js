@@ -321,6 +321,8 @@ wormy.Client = function() {
           }
         }
         this.dispatchQueuedCommands();
+        if (this.frame % 45 == 0)
+          this.pingServer();
       }
     },
 
@@ -701,8 +703,6 @@ wormy.Client = function() {
       // Minimap eventually?
       // this.draw(this.baseGameState_, 0, 0, 80, 50, 80, 50);
       this.updateScores();
-      if (this.frame % 30 == 0)
-        this.pingServer();
     },
 
     draw: function(ctx, state, spriteSheet, x1, y1, x2, y2, dx, dy, blockSize) {
