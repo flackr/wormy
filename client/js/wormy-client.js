@@ -58,10 +58,10 @@ wormy.Client = function() {
   var spriteSize = 32;
   var spriteColour = '#ff1de0';
 
-  // Controls are keyCode values for Up, Right, Down, Left, Join, Quit, Power.
-  var controls = [[38, 39, 40, 37, 13, 8, 17],
-                  [87, 68, 83, 65, 69, 81, 90],
-                  [73, 76, 75, 74, 79, 85, 78]];
+  // Controls are keyCode values for Up, Right, Down, Left, Join, Quit, Power, Power.
+  var controls = [[38, 39, 40, 37, 13, 8, 17, 96],
+                  [87, 68, 83, 65, 69, 81, 90, 67],
+                  [73, 76, 75, 74, 79, 85, 78, 190]];
 
   function merge(a, b) {
     var r = {};
@@ -492,7 +492,7 @@ wormy.Client = function() {
                 } else if (j == 5) { // Disconnect.
                   this.dispatchDelayedCommand({t: 'd', p: i});
                   this.localPlayers_[i].w = -1;
-                } else if (j == 6) { // Use power.
+                } else if (j == 6 || j == 7) { // Use power.
                   this.dispatchImmediateCommand({
                       t: 'p', p: this.localPlayers_[i].w,
                       f: 1 - this.state_.p[this.localPlayers_[i].w].f});
