@@ -126,11 +126,18 @@ var wormy = function() {
       }, {
         name: 'speed',
         duration: 2*50,  // 50 squares of fast movement when fully charged.
-        recharge: 3*50   // 50 squares of regular movement to recharge.
+        recharge: 3*50,  // 50 squares of regular movement to recharge.
+        activation: 0.2,
       }, {
         name: 'burrow',
-        duration: 2*20,
-        recharge: 3*50
+        duration: 2*25,
+        recharge: 3*50,
+        activation: 0.3,
+      }, {
+        name: 'reverse',
+        duration: 1,
+        recharge: 3*15,
+        activation: 1,
       }
     ],
 
@@ -275,7 +282,31 @@ var wormy = function() {
           if (g.p[md[i].p].s == 0)
             g.p[md[i].p].t[0][3] = md[i].d;
         } else if (md[i].t == 'p') { // Use power.
-          g.p[md[i].p].f = md[i].f;
+          if (g.p[md[i].p].f == md[i].f) continue;
+          g.p[md[i].p].f = 0;
+          if (md[i].f && g.p[md[i].p].p &&
+              g.p[md[i].p].e >= this.powers[g.p[md[i].p].p].activation) {
+            if (g.p[md[i].p].p == 3) {
+              // Reverse is an immediate reaction.
+              // Compute the new direction for each segment of the tail.
+              for (var j = 0; j < g.p[md[i].p].t.length - 1; j++) {
+                var dx = g.p[md[i].p].t[j + 1][0] - g.p[md[i].p].t[j][0];
+                var dy = g.p[md[i].p].t[j + 1][1] - g.p[md[i].p].t[j][1];
+                for (var dir = 0; dir < this.moveVectors.length; dir++) {
+                  if (dx == this.moveVectors[dir][0] && dy == this.moveVectors[dir][1]) {
+                    g.p[md[i].p].t[j][3] = dir;
+                    break;
+                  }
+                }
+              }
+              g.p[md[i].p].t.reverse();
+              // Reverse the last tail segment direction.
+              g.p[md[i].p].t[0][3] = (g.p[md[i].p].t[0][3] + 2) % 4;
+            } else {
+              g.p[md[i].p].f = 1;
+            }
+            g.p[md[i].p].e -= this.powers[g.p[md[i].p].p].activation;
+          }
         } else if (md[i].t == 'a') { // Add player.
           this.clearTail(g, md[i].p);
           g.p[md[i].p] = {
@@ -365,9 +396,12 @@ var wormy = function() {
             g.p[pi].l += tailInc;
             for (var j = 0; j < g.food.length; j++) {
               if (g.food[j][0] == next[0] && g.food[j][1] == next[1]) {
-                g.p[pi].p = g.food[j][2];
+                // Lose energy if picking up a different power.
+                if (g.p[pi].p != g.food[j][2]) {
+                  g.p[pi].e = 0;
+                  g.p[pi].p = g.food[j][2];
+                }
                 g.p[pi].f = 0;
-                g.p[pi].e = 0;
                 g.food.splice(j, 1);
                 j--;
               }
