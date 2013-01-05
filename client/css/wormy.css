@@ -178,21 +178,40 @@ h2 {
   white-space: nowrap;
 }
 
-#dpad {
+#dpad-overlay {
   bottom: 50px;
   position: absolute;
   right: 50px;
   display: none;
-  height: 165px;
-  width: 165px;
+  height: 180px;
+  width: 180px;
   -webkit-transform: rotate(45deg);
   -moz-transform: rotate(45deg);
   transform: rotate(45deg);
   z-index: 3;
 }
 
-body.touch #dpad {
+#dpad-overlay > .power {
+  border: 3px solid rgba(0, 0, 0, 0.4);
+  bottom: 60px;
+  left: 60px;
+  position: absolute;
+  right: 60px;
+  top: 60px;
+  -webkit-transform: rotate(-45deg);
+  -moz-transform: rotate(-45deg);
+  transform: rotate(-45deg);
+}
+
+#dpad {
   display: table;
+  height: 180px;
+  position: absolute;
+  width: 180px;
+}
+
+body.touch #dpad-overlay {
+  display: block;
 }
 
 #dpad > div {
@@ -200,12 +219,12 @@ body.touch #dpad {
 }
 
 #dpad > div > div {
-  display: table-cell;
   border: 3px solid rgba(0, 0, 0, 0.4);
+  display: table-cell;
   vertical-align: middle;
 }
 
-#dpad > div > div[active] {
+#dpad-overlay div[active] {
   background-color: rgba(200, 200, 200, 0.4);
 }
 
@@ -233,7 +252,7 @@ body.touch #dpad {
   border-top: none;
 }
 
-#dpad.left {
+#dpad-overlay.left {
   left: 50px;
   right: auto;
 }

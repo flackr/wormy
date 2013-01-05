@@ -99,7 +99,8 @@ wormy.Client = function() {
         dpad.querySelector('.up'),
         dpad.querySelector('.right'),
         dpad.querySelector('.down'),
-        dpad.querySelector('.left')
+        dpad.querySelector('.left'),
+        $('dpad-overlay').querySelector('.power')
     ];
 
     document.body.addEventListener('touchstart', bind(this, this.handleTouchStart_));
@@ -427,14 +428,34 @@ wormy.Client = function() {
     handleTouchPositionDpad_: function(evt) {
       if (evt.touches.length != 1) return;
       if (evt.touches[0].pageX > document.body.clientWidth / 2) {
-        $('dpad').classList.remove('left');
+        $('dpad-overlay').classList.remove('left');
       } else {
-        $('dpad').classList.add('left');
+        $('dpad-overlay').classList.add('left');
       }
     },
 
     handleTouchStartButton_: function(el, direction, evt) {
-      this.handleDirection(0, direction);
+      if (direction < 4) {
+        this.handleDirection(0, direction);
+      } else {
+        if (this.connection_) {
+          if (this.localPlayers_[0].w >= 0) {
+            if (this.state_.p[this.localPlayers_[0].w].s == 1) {
+              // If the worm is currently dead, then reset.
+              this.resetWorm_(this.localPlayers_[0].w);
+            } else {
+              // Use powerup.
+              this.dispatchImmediateCommand({
+                  t: 'p', p: this.localPlayers_[0].w,
+                  f: 1 - this.state_.p[this.localPlayers_[0].w].f});
+            }
+          } else {
+            // If the player is not yet playing, start.
+            this.socket.emit('start', [0, $('name0').value]);
+            this.hideDialog();
+          }
+        }
+      }
       el.setAttribute('active');
       evt.preventDefault();
       evt.stopPropagation();
