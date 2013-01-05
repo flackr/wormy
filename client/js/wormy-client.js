@@ -387,11 +387,18 @@ wormy.Client = function() {
           this.state_.p[this.localPlayers_[i].w].s != 0 ||
           this.state_.p[this.localPlayers_[i].w].t.length == 0)
         return;
-      if (this.localPlayers_[i].d) {
+      // If the user has already entered a direction and they are not using
+      // the freeze powerup then enqueue this direction for the next frame.
+      if (this.localPlayers_[i].d && (
+              this.state_.p[this.localPlayers_[i].w].p != 4 ||
+              this.state_.p[this.localPlayers_[i].w].f == 0)) {
         this.localPlayers_[i].queue = j + 1;
       } else {
-        if ((j + 2) % 4 == this.state_.p[this.localPlayers_[i].w].t[0][3])
+        if (this.state_.p[this.localPlayers_[i].w].t.length > 1 &&
+            (j + 2) % 4 == this.state_.p[this.localPlayers_[i].w].t[1][3]) {
           return;
+        }
+        this.localPlayers_[i].queue = 0;
         this.localPlayers_[i].d = 1;
         this.changeDirection(i, j);
       }
