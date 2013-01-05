@@ -56,6 +56,7 @@ body {
 
 .tabs > div {
   border: 1px solid #ccc;
+  cursor: default;
   margin-left: 3px;
   margin-bottom: -1px;
   padding: 3px;
@@ -211,6 +212,18 @@ h2 {
 }
 
 body.touch #dpad-overlay {
+  display: block;
+}
+
+body.touch .keyboard {
+  display: none;
+}
+
+body .touch {
+  display: none;
+}
+
+body.touch .touch {
   display: block;
 }
 

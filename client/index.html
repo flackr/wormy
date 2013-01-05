@@ -46,19 +46,33 @@
   <div id="instructions" class="dialog" hidden>
     <div class="tabs">
       <div>Instructions</div>
+      <div>Powerups</div>
+      <div>Controls</div>
     </div>
     <div>
-      <h1>Wormy</h1>
+      <h2>Wormy</h2>
       <p>Wormy is a game of strategy and timing. Control your worm to try to eat the most food and grow longer than any of the other worms. Win the level by growing to 100 units long and 3 times longer than your competitors.</p>
+    </div>
+    <div>
+      <h2>Powerups</h2>
+      <p>There are a variety of powerups in the game. Each powerup is obtained by picking up the food matching the color shown below. Powerups require energy to use. Your energy for a powerup will automatically replenish when not using the powerup.</p>
+      <ul>
+        <li><font color="yellow">Speed</font> makes your worm travel 50% faster.
+        <li><font color="#f33">Burrow</font> allows you to travel under walls and other worms.
+        <li><font color="#0f0">Reverse</font> allows you to reverse directions.
+        <li><font color="#55f">Freeze</font> allows you to stop moving and will automatically activate if you are about to crash.
+      </ul>
+    </div>
+    <div>
       <h2>Controls</h2>
       <div class="table controls">
         <div class="header">
           <div>Name:</div>
           <div><input type="text" id="name0" size="10" value="Sammy"></div>
-          <div><input type="text" id="name1" size="10" value="Tommy"></div>
-          <div><input type="text" id="name2" size="10" value="Billy"></div>
+          <div class="keyboard"><input type="text" id="name1" size="10" value="Tommy"></div>
+          <div class="keyboard"><input type="text" id="name2" size="10" value="Billy"></div>
         </div>
-        <div>
+        <div class="keyboard">
           <div>Change direction:</div>
 
           <!-- Player 1 -->
@@ -85,29 +99,34 @@
             </table>
           </div>
         </div>
-        <div>
+        <div class="keyboard">
           <div>Use power:</div>
           <div>Right control / Numpad 0</div>
           <div>Z / C</div>
           <div>N / .</div>
         </div>
-        <div>
+        <div class="keyboard">
           <div>Enter game:</div>
           <div>Enter</div>
           <div>E</div>
           <div>O</div>
         </div>
-        <div>
+        <div class="keyboard">
           <div>Leave game:</div>
           <div>Backspace</div>
           <div>Q</div>
           <div>U</div>
         </div>
       </div>
+      <div class="touch">
+        <p>The touch controller at the bottom of the screen is used to
+        control your worm. The center button will enter the game or respawn
+        (if you are dead) or use a powerup if you are alive. The arrows
+        will turn your worm in that direction.</p>
+      </div>
       <p>You can change your player names above and then press [Enter] or
-      click/tap outside this dialog to dismiss these instructions. Press 'R' to
-      toggle retro mode (old style graphics). Press Escape at any time to return
-      to the lobby.</p>
+      click/tap outside this dialog to dismiss these instructions. Press Escape
+      at any time to return to the lobby.</p>
     </div>
   </div>
 </div>
