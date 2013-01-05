@@ -773,7 +773,7 @@ wormy.Client = function() {
         }
         // Then draw the worms.
         for (var layer = 0; layer < 2; layer++) {
-          ctx.globalAlpha = layer == 0 ? 0.5 : 1;
+          ctx.globalAlpha = layer == 0 ? 0.3 : 1;
           for (var i = 0; i < state.p.length; i++) {
             for (var j = 0; j < state.p[i].t.length; j++) {
               if (state.p[i].t[j][2] != layer)

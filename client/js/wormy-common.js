@@ -140,9 +140,9 @@ var wormy = function() {
         activation: 1,
       }, {
         name: 'freeze',
-        duration: 3*75,
+        duration: 3*50,
         recharge: 3*50,
-        activation: 0.1,
+        activation: 0.2,
       },
     ],
 
