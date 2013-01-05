@@ -81,11 +81,15 @@ wormy.Server = function() {
       var l = this.findRun(1);
       if (l) {
         this.foodCount++;
+        var powerup = 0;
+        // 50% of the time choose a random powerup.
+        if (Math.random() < 0.5)
+          powerup = Math.floor(Math.random() * (this.powers.length - 1)) + 1;
         this.deliverDelayedCommand({
             t: 'f',
             fx: l[1],
             fy: l[0],
-            ft: Math.floor(Math.random() * (this.powers.length - 1)) + 1});
+            ft: powerup});
       }
     },
 

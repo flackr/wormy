@@ -315,7 +315,8 @@ wormy.Client = function() {
       if (this.started) {
         for (var i = 0; i < this.state_.p.length; i++) {
           // Only redraw if a worm moved.
-          if (this.state_.p[i].m) {
+          if ((this.state_.f % this.moveInterval) == 0 ||
+              this.state_.p[i].m) {
             this.requestDraw();
             break;
           }

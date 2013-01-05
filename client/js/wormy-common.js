@@ -138,7 +138,12 @@ var wormy = function() {
         duration: 1,
         recharge: 3*15,
         activation: 1,
-      }
+      }, {
+        name: 'freeze',
+        duration: 3*75,
+        recharge: 3*50,
+        activation: 0.1,
+      },
     ],
 
     reset: function(state) {
@@ -380,6 +385,11 @@ var wormy = function() {
         if (g.p[pi].p == 1 && g.p[pi].f)
           moveInterval--;
         g.p[pi].m = (g.f % moveInterval == 0) ? 1 : 0;
+
+        // Allow freezing in place when using freeze powerup.
+        if (g.p[pi].p == 4 && g.p[pi].f)
+          g.p[pi].m = 0;
+
         if (g.p[pi].m == 0)
           continue;
 
@@ -397,11 +407,11 @@ var wormy = function() {
             for (var j = 0; j < g.food.length; j++) {
               if (g.food[j][0] == next[0] && g.food[j][1] == next[1]) {
                 // Lose energy if picking up a different power.
-                if (g.p[pi].p != g.food[j][2]) {
+                if (g.food[j][2] && g.p[pi].p != g.food[j][2]) {
                   g.p[pi].e = 0;
                   g.p[pi].p = g.food[j][2];
+                  g.p[pi].f = 0;
                 }
-                g.p[pi].f = 0;
                 g.food.splice(j, 1);
                 j--;
               }
@@ -411,6 +421,13 @@ var wormy = function() {
             }
           }
           if (g.l[next[0]][next[1]][next[2]]) {
+            // If the worm is about to crash and has the freeze power then it
+            // should activate it automatically.
+            if (g.p[pi].p == 4 && g.p[pi].e > this.powers[4].activation) {
+              g.p[pi].f = 1;
+              g.p[pi].e -= this.powers[4].activation;
+              continue;
+            }
             g.p[pi].s = 1;
             g.p[pi].l = 0;
           } else {
