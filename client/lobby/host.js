@@ -132,14 +132,31 @@ lobby.Host = function() {
         window.addEventListener('close', self.onCloseFn_);
         chrome.socket.listen(self.socketId_, '0.0.0.0', port, function(result) {
           if (result < 0) {
-            console.log('Failed to listen on port '+port);
+            var errorMsg = 'Failed to listen on port ' + port;
+            console.log(errorMsg);
+            self.dispatchEvent('error', 'listen', errorMsg);
             return;
           }
           self.acceptConnection(port);
           self.discoverIp();
-          self.dispatchEvent('ready', 'ws://localhost:'+port+'/');
+          self.dispatchEvent('ready', 'ws://localhost:' + port + '/');
+          self.registerSocketConnection(self.socketId_);
         });
       });
+    },
+
+    registerSocketConnection: function(socketId, remove) {
+      if (window.chrome && chrome.runtime) {
+        chrome.runtime.getBackgroundPage(function(page) {
+          var id = window.wrapperId;
+          if (page && page.removeSocketConnection && page.addSocketConnection) {
+            if (remove)
+              page.removeSocketConnection(id, socketId);
+            else
+              page.addSocketConnection(id, socketId);
+          }
+        });
+      }
     },
 
     discoverIp: function() {
@@ -174,6 +191,7 @@ lobby.Host = function() {
       var self = this;
       chrome.socket.accept(self.socketId_, function(acceptInfo) {
         var clientIndex = self.clients.length;
+        self.registerSocketConnection(acceptInfo.socketId);
         self.clients[clientIndex] = {socketId: acceptInfo.socketId, readyState: 0, data: ''};
         self.listenOnSocket(clientIndex);
         self.acceptConnection(port);
@@ -340,6 +358,7 @@ lobby.Host = function() {
     closeSocket: function(clientIndex) {
       if (clientIndex === undefined) {
         if (this.socketId_) {
+          this.registerSocketConnection(this.socketId_, true);
           chrome.socket.disconnect(this.socketId_);
           chrome.socket.destroy(this.socketId_);
           delete this.socketId_;
@@ -351,6 +370,7 @@ lobby.Host = function() {
         return;
       if (this.clients[clientIndex].readyState == 1)
         this.dispatchEvent('disconnection', clientIndex);
+      this.registerSocketConnection(this.clients[cliendIndex].socketId, true);
       chrome.socket.disconnect(this.clients[clientIndex].socketId);
       chrome.socket.destroy(this.clients[clientIndex].socketId);
       delete this.clients[clientIndex];
