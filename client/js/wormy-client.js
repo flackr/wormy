@@ -752,6 +752,9 @@ wormy.Client = function() {
           // state.
           while (this.canvasState.length > 0) {
             var pos = this.canvasState.pop();
+            if (pos[0] < 0 || pos[0] >= state.l.length ||
+                pos[1] < 0 || pos[1] >= state.l[pos[0]].length)
+              continue;
             var s = state.l[pos[0]][pos[1]][1];
             ctx.drawImage(spriteSheet, s == 1 ? spriteSize : 0, 0, spriteSize, spriteSize,
                           pos[1] * blockSize, pos[0] * blockSize, blockSize, blockSize);

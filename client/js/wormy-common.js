@@ -306,7 +306,8 @@ var wormy = function() {
               }
               g.p[md[i].p].t.reverse();
               // Reverse the last tail segment direction.
-              g.p[md[i].p].t[0][3] = (g.p[md[i].p].t[0][3] + 2) % 4;
+              if (g.p[md[i].p].t.length >= 1)
+                g.p[md[i].p].t[0][3] = (g.p[md[i].p].t[0][3] + 2) % 4;
             } else {
               g.p[md[i].p].f = 1;
             }
