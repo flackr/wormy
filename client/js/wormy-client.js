@@ -626,6 +626,8 @@ wormy.Client = function() {
       setTimeout(this.showDialog.bind(this, $('instructions'), true), 200);
       this.connection_ = connection;
       this.socket = new LobbySocketAdapter(this.connection_);
+      for (var i = 0; i < this.localPlayers_.length; i++)
+        this.localPlayers_[i].w = -1;
 
       var self = this;
       this.socket.on('load', function(data) {
