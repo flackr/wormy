@@ -295,10 +295,14 @@ var wormy = function() {
               // Reverse is an immediate reaction.
               // Compute the new direction for each segment of the tail.
               for (var j = 0; j < g.p[md[i].p].t.length - 1; j++) {
-                var dx = g.p[md[i].p].t[j + 1][0] - g.p[md[i].p].t[j][0];
-                var dy = g.p[md[i].p].t[j + 1][1] - g.p[md[i].p].t[j][1];
+                var dy = g.p[md[i].p].t[j + 1][0] - g.p[md[i].p].t[j][0];
+                var dx = g.p[md[i].p].t[j + 1][1] - g.p[md[i].p].t[j][1];
+                if (dx > 1) dx -= g.l[0].length;
+                if (dx < -1) dx += g.l[0].length;
+                if (dy > 1) dy -= g.l.length;
+                if (dy < -1) dy += g.l.length;
                 for (var dir = 0; dir < this.moveVectors.length; dir++) {
-                  if (dx == this.moveVectors[dir][0] && dy == this.moveVectors[dir][1]) {
+                  if (dy == this.moveVectors[dir][0] && dx == this.moveVectors[dir][1]) {
                     g.p[md[i].p].t[j][3] = dir;
                     break;
                   }
