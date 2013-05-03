@@ -22,7 +22,7 @@ lobby.GameLobby = (function() {
    * '?lobby=url'.
    * @type {string}
    */
-  var defaultLobbyUrl = 'http://lobby-flack.dotcloud.com';
+  var defaultLobbyUrl = 'http://nicepackets.com:9999';
 
   /**
    * Filter private games that are not connectable becaue of being on a
