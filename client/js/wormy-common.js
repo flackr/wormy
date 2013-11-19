@@ -111,13 +111,13 @@ var wormy = function() {
 
   Game.prototype = {
 
-    moveInterval: 3,
+    moveInterval: 2,
 
     buffer: 42,
 
     playAt: 12,
 
-    targetGameInterval: 70,
+    targetGameInterval: 85,
 
     moveVectors: [[-1, 0], [0, 1], [1, 0], [0, -1]],
 
