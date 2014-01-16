@@ -12,25 +12,35 @@ wormy.Server = function() {
   var idleFrames = 25 * 5; // 25 seconds considered idle.
   var coolDownFrames = 20; // 4 seconds between reconnects.
 
-  var Server = function(connection, name) {
+  var Server = function(server, name) {
     wormy.Game.apply(this);
-    this.connection_ = connection;
+    this.server_ = server;
+    this.game_ = null;
     this.clients = [];
     this.worms = [];
     this.loadLevel(0);
 
-    this.connection_.updateInfo({
-      gameId: 'wormy',
-      description: name,
-      status: 'running',
-      url: 'http://www.dynprojects.com/games/wormy/',
-    });
-
-    this.connection_.addEventListener('connection', this.onConnection.bind(this));
+    this.server_.addEventListener('open', this.onServerReady.bind(this, name));
+    this.server_.addEventListener('connection', this.onConnection.bind(this));
   }
 
   Server.prototype = {
     __proto__: wormy.Game.prototype,
+
+    close: function() {
+      this.server_.close();
+      if (this.game_)
+        this.game_.close();
+    },
+
+    onServerReady: function(name) {
+      // Register game with game list.
+      window.location.hash = this.server_.id();
+      this.game_ = new GameList.Game({
+        'connection': this.server_.id(),
+        'name': name
+      });
+    },
 
     serverStatus: function() {
       var playerCount = 0;
@@ -131,7 +141,8 @@ wormy.Server = function() {
                 });
                 this.setPlayerIdle(pno, false);
               }
-            } else if (this.state_.p[pno].s != 0 &&
+            } else if (this.state_.p.length > pno &&
+                       this.state_.p[pno].s != 0 &&
                        this.state_.p[pno].t.length == 0) {
               this.setPlayerIdle(pno, true);
             }
@@ -289,19 +300,36 @@ wormy.Server = function() {
           }
         }
       }
-      this.connection_.updateInfo({players: playerList});
+      if (this.game_) {
+        this.game_.update({players: playerList.length});
+      }
     },
 
-    onConnection: function(clientIndex) {
-      var addr = clientIndex;
-
-      var socket = new LobbyServerSocketAdapter(this.connection_, clientIndex);
-      // Send game state immediately.
-      this.resetClient(socket);
-
-      // And register for all new messages from here on.
-      this.clients.push({s: socket, worms: [], wormNames: [], coolDown: []});
+    onConnection: function(clientId) {
+      var pc = new (window.RTCPeerConnection ||
+                    window.webkitRTCPeerConnection ||
+                    window.mozRTCPeerConnection)(
+          {"iceServers": [{ "url": "stun:stun.l.google.com:19302" }]},
+          {optional: [{RtpDataChannels: true}]});
+      this.server_.accept(clientId, pc);
       var self = this;
+
+      pc.ondatachannel = function(e) {
+        var c = e.channel;
+        c.addEventListener('open', function() {
+          self.server_.onConnected(clientId);
+          self.addClient(new RtcHelper.FragmentedChannel(c));
+        });
+      };
+    },
+
+    addClient: function(c) {
+      var self = this;
+      var socket = new SocketAdapter(c);
+      var addr = this.clients.length;
+      // Send game state immediately.
+      self.resetClient(socket);
+      self.clients.push({s: socket, worms: [], wormNames: [], coolDown: []});
 
       socket.on('start', function(data) {
         var localIndex = data[0];

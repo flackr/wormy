@@ -5,16 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <link rel="icon" href="favicon.ico">
 <link rel="stylesheet" href="css/wormy.css">
-<link rel="stylesheet" href="lobby/lobby.css">
-<script type="text/javascript" src="lobby/util.js"></script>
-<script type="text/javascript" src="lobby/client.js"></script>
-<script type="text/javascript" src="lobby/host.js"></script>
-<script type="text/javascript" src="lobby/sha1.js"></script>
-<script type="text/javascript" src="lobby/lobby.js"></script>
 <script type="text/javascript" src="js/wormy-levels.js"></script>
 <script type="text/javascript" src="js/wormy-common.js"></script>
 <script type="text/javascript" src="js/wormy-server.js"></script>
 <script type="text/javascript" src="js/wormy-client.js"></script>
+<script type="text/javascript" src="js/rtc/rtc.js"></script>
+<script type="text/javascript" src="js/game-list/game-list.js"></script>
 </head>
 <body>
 <div id="dpad-overlay">
@@ -36,10 +32,14 @@
       <div>Game list</div>
       <div id="create-game-tab">Create game</div>
     </div>
-    <div id="wormy-game-list"></div>
+    <div>
+      <table id="wormy-game-list">
+        <tr><td>Name</td><td>Players</td><td></td></tr>
+      </table>
+      <button id="refresh-games">Refresh</button>
+    </div>
     <div>
       Name: <input type="text" id="game-name" value="A wormy game."><br>
-      Port: <input type="text" id="game-port" value="9997"><br>
       <button id="create-game">Create</button>
     </div>
   </div>
@@ -142,6 +142,11 @@
 </div>
 <div id="templates">
   <table>
+    <tr id="gameItem" class="game">
+      <td><span class="name"></span></td>
+      <td><span class="players"></span></td>
+      <td><button class="join">Join</button></td>
+    </tr>
     <tr id="player" class="player">
       <td><span class="name"></span></td>
       <td><span class="ping"></span></td>

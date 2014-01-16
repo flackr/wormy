@@ -156,38 +156,75 @@ wormy.Client = function() {
         }
       }
 
-      if (!lobby.serverCapable())
-        $('create-game-tab').setAttribute('disabled', true);
       $('create-game').addEventListener('click', this.createGame.bind(this));
-      this.gameLobby = $('wormy-game-list');
-      lobby.GameLobby.setGameId('wormy');
-      lobby.GameLobby.decorate(this.gameLobby);
-      this.gameLobby.setColorScheme(lobby.GameLobby.ColorScheme.LIGHT_ON_DARK);
-      $('wormy-game-list').onSelectGame = function(game) {
-        self.connectClient(new lobby.Client(game));
-      };
+      this.initializeDialog($('lobby'));
+      this.initializeLobby();
+
+      if (window.location.hash != '') {
+        this.connectGame(window.location.hash.substr(1));
+      }
+    },
+
+    initializeLobby: function() {
+      $('refresh-games').addEventListener('click', this.updateGameList.bind(this));
+      this.updateGameList();
+    },
+
+    updateGameList: function() {
+      // Only update game list if not in a game.
+      if (this.connection_)
+        return;
+      var games = $('wormy-game-list').getElementsByTagName('tr');
+      for (var i = 1; i < games.length; i++) {
+        games[i].parentNode.removeChild(games[i]);
+      }
+      games = [];
+      var request = new XMLHttpRequest();
+      request.open("POST", "http://www.dynprojects.com/dp/games/", true);
+      request.setRequestHeader("Content-type","application/x-www-form-urlencoded");
+      request.responseType = 'json';
+      var self = this;
+      request.addEventListener('loadend', function(e) {
+        if (request.status == 200) {
+          if (request.response.result == 'success') {
+            var games = request.response.games;
+            var gameTbl = $('wormy-game-list');
+            for (var i = 0; i < games.length; i++) {
+              var gameDiv = $('gameItem').cloneNode(true);
+              gameDiv.setAttribute('id', '');
+              gameDiv.querySelector('.name').textContent = games[i].name;
+              gameDiv.querySelector('.players').textContent = games[i].players;
+              gameDiv.querySelector('.join').addEventListener('click', self.connectGame.bind(self, games[i].connection));
+              gameTbl.appendChild(gameDiv);
+            }
+          }
+        }
+      });
+      request.send("order=-created");
     },
 
     disconnect: function() {
       if (this.connection_) {
         this.stop();
-        this.connection_.disconnect();
+        this.connection_.close();
+
         this.showDialog($('lobby'));
       }
       if (window.server) {
         server.stop();
-        server.connection_.disconnect();
+        server.close();
         delete window.server;
       }
+      window.location.hash = '';
     },
 
     createGame: function() {
       var self = this;
-      var host = new lobby.Host($('wormy-game-list').getUrl().replace('http://', 'ws://'), parseInt($('game-port').value));
+      var host = new RtcHelper.Server();
       window.server = new wormy.Server(host, $('game-name').value);
-      host.addEventListener('ready', function(address) {
-        self.connectClient(host.createLocalClient());
-      });
+      var localSocket = new RtcHelper.LocalSocket();
+      this.connectClient(localSocket);
+      window.server.addClient(new RtcHelper.LocalSocket(localSocket));
     },
 
     colourizeImageData: function(data, oldColour, colour) {
@@ -384,9 +421,12 @@ wormy.Client = function() {
 
     handleDirection: function(i, j) {
       if (this.localPlayers_[i].w < 0 ||
+          !this.state_.p[this.localPlayers_[i].w] ||
           this.state_.p[this.localPlayers_[i].w].s != 0 ||
-          this.state_.p[this.localPlayers_[i].w].t.length == 0)
+          this.state_.p[this.localPlayers_[i].w].t.length == 0) {
+        console.log('Not moving worm because worm not controlled');
         return;
+      }
       // If the user has already entered a direction and they are not using
       // the freeze powerup then enqueue this direction for the next frame.
       if (this.localPlayers_[i].d && (
@@ -621,11 +661,32 @@ wormy.Client = function() {
       }
     },
 
+    connectGame: function(id) {
+      window.location.hash = id;
+      var self = this;
+      var pc = new (window.RTCPeerConnection ||
+                    window.webkitRTCPeerConnection ||
+                    window.mozRTCPeerConnection)(
+          {"iceServers": [{ "url": "stun:stun.l.google.com:19302" }]},
+          {optional: [{RtpDataChannels: true}]});
+      var dc = pc.createDataChannel('data', {'reliable': true});
+      var rtc = new RtcHelper.Client(pc);
+      pc.createOffer(function(desc) {
+          pc.setLocalDescription(desc);
+          rtc.connect(RtcHelper.getUrlFromId(id), desc);
+        }, null, { 'mandatory': { 'OfferToReceiveAudio': false,
+                                  'OfferToReceiveVideo': false } });
+      dc.addEventListener('open', function() {
+        rtc.close();
+        self.connectClient(new RtcHelper.FragmentedChannel(dc));
+      });
+    },
+
     connectClient: function(connection) {
       this.hideDialog();
       setTimeout(this.showDialog.bind(this, $('instructions'), true), 200);
       this.connection_ = connection;
-      this.socket = new LobbySocketAdapter(this.connection_);
+      this.socket = new SocketAdapter(this.connection_);
       for (var i = 0; i < this.localPlayers_.length; i++)
         this.localPlayers_[i].w = -1;
 
