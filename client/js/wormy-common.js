@@ -114,7 +114,7 @@ var wormy = function() {
     ],
 
     reset: function(state) {
-      this.baseGameState_ = state.base;
+      this.baseGameState_ = this.decompressGameState(state.base);
       this.moves_ = state.moves;
       this.recomputeState();
       this.lastStepTime_ = undefined;
@@ -124,6 +124,7 @@ var wormy = function() {
     },
 
     loadLevel: function(level) {
+      this.level = level;
       this.stop();
       this.foodCount = 0;
       this.baseGameState_.l = getLevel(level);
@@ -134,6 +135,34 @@ var wormy = function() {
       }
       this.baseGameState_.food = [];
       this.state_ = clone(this.baseGameState_);
+    },
+
+    compressGameState: function(level, state) {
+      var r = {
+        'l': level,
+        'food': state.food,
+        'p': state.p,
+        'f': state.f,
+      };
+      return r;
+    },
+
+    decompressGameState: function(c) {
+      var state = {
+        'l': getLevel(c.l),
+        'food': c.food,
+        'p': c.p,
+        'f': c.f,
+      };
+      for (var i = 0; i < state.food.length; i++) {
+        state.l[state.food[i][0]][state.food[i][1]][1] = 2;
+      }
+      for (var i = 0; i < state.p.length; i++) {
+        for (var j = 0; j < state.p[i].t.length; j++) {
+          state.l[state.p[i].t[j][0]][state.p[i].t[j][1]][state.p[i].t[j][2]] = i + 3;
+        }
+      }
+      return state;
     },
 
     stop: function() {

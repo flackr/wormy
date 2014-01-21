@@ -178,7 +178,7 @@ wormy.Server = function() {
       socket.emit('load', {
           f: this.frame,
           s: {
-            base: this.baseGameState_,
+            base: this.compressGameState(this.level, this.baseGameState_),
             moves: this.moves_,
           },
           p: players,
@@ -186,7 +186,6 @@ wormy.Server = function() {
     },
 
     loadLevel: function(level) {
-      this.level = level;
       wormy.Game.prototype.loadLevel.call(this, level);
       this.moves_ = [];
       while (this.moves_.length < this.playAt + 1)
