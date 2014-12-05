@@ -359,9 +359,6 @@ wormy.Client = function() {
             break;
           }
         }
-        this.dispatchQueuedCommands();
-        if (this.frame % 45 == 0)
-          this.pingServer();
       }
     },
 
@@ -372,8 +369,8 @@ wormy.Client = function() {
     },
 
     // Dispatches a command and acts on it on this frame.
-    dispatchImmediateCommand: function(cmd) {
-      var evt = {f:this.frame, d:cmd};
+    dispatchImmediateCommand: function(cmd, offset) {
+      var evt = {f:this.frame + (offset ? offset : 0), d:cmd};
       this.socket.emit('i', evt);
       this.addEvent(evt);
     },
@@ -387,30 +384,17 @@ wormy.Client = function() {
       this.socket.emit('d', cmd);
     },
 
-    changeDirection: function(player, newdir) {
+    changeDirection: function(player, newdir, offset) {
+      offset = offset || 0;
       this.dispatchImmediateCommand(
-          {t:'m', p:this.localPlayers_[player].w, d:newdir});
-    },
-
-    dispatchQueuedCommands: function() {
-      for (var i = 0; i < this.localPlayers_.length; i++) {
-        if (this.localPlayers_[i].w >= 0 && // If this is a playing player
-            this.state_.p[this.localPlayers_[i].w] && // in the game
-            this.state_.p[this.localPlayers_[i].w].m) { // which has just moved
-          this.localPlayers_[i].d = 0;
-          if (this.localPlayers_[i].queue) { // and has a queued command.
-            this.handleDirection(i, this.localPlayers_[i].queue - 1);
-            this.localPlayers_[i].queue = 0;
-          }
-        }
-      }
+          {t:'m', p:this.localPlayers_[player].w, d:newdir}, offset);
     },
 
     // Called when a worm is created, you take control immediately.
     takeControl: function(playerNo, localNo) {
       this.localPlayers_[localNo].w = playerNo;
       this.localPlayers_[localNo].queue = 0;
-      this.localPlayers_[localNo].d = 0;
+      this.localPlayers_[localNo].d = -1;
     },
 
     resetWorm_: function(worm) {
@@ -429,17 +413,19 @@ wormy.Client = function() {
       }
       // If the user has already entered a direction and they are not using
       // the freeze powerup then enqueue this direction for the next frame.
-      if (this.localPlayers_[i].d && (
+      var playerMoveInterval = this.moveInterval;
+      if (this.state_.p[this.localPlayers_[i].w].p == 1 &&
+          this.state_.p[this.localPlayers_[i].w].f) {
+        playerMoveInterval--;
+      }
+      if (Math.floor(this.localPlayers_[i].d / playerMoveInterval) ==
+          Math.floor(this.frame / playerMoveInterval) && (
               this.state_.p[this.localPlayers_[i].w].p != 4 ||
               this.state_.p[this.localPlayers_[i].w].f == 0)) {
-        this.localPlayers_[i].queue = j + 1;
+        this.changeDirection(i, j, (playerMoveInterval - (this.frame % playerMoveInterval)));
       } else {
-        if (this.state_.p[this.localPlayers_[i].w].t.length > 1 &&
-            (j + 2) % 4 == this.state_.p[this.localPlayers_[i].w].t[1][3]) {
-          return;
-        }
         this.localPlayers_[i].queue = 0;
-        this.localPlayers_[i].d = 1;
+        this.localPlayers_[i].d = this.frame;
         this.changeDirection(i, j);
       }
     },
@@ -559,17 +545,8 @@ wormy.Client = function() {
           this.stop();
         }
       } else {
-        if (!this.started && !this.pingStart) {
-          this.pingServer();
-        }
+        this.start();
       }
-    },
-
-    pingServer: function() {
-      if (this.pingStart || !this.connection_)
-        return;
-      this.pingStart = (new Date()).getTime();
-      this.socket.emit('frame-ping');
     },
 
     resetPlayers: function(playerData) {
@@ -691,6 +668,16 @@ wormy.Client = function() {
         this.localPlayers_[i].w = -1;
 
       var self = this;
+      this.socket.emit('t');
+      var pingStart = performance.now();
+      this.socket.on('t', function(data) {
+        var ping = performance.now() - pingStart;
+        self.serverTimeDiff_ = performance.now() - data.ct;
+        self.serverTimeDiff_ -= 0.5 * ping;
+        self.gameInterval = data.i;
+        console.log('ping of ' + ping + ', game interval: ' + self.gameInterval);
+        self.socket.emit('load');
+      });
       this.socket.on('load', function(data) {
         self.stop();
         self.frame = data.f;
@@ -698,24 +685,8 @@ wormy.Client = function() {
         self.layout();
         self.resetPlayers(data.p);
         self.oos = false;
-        self.pingServer();
-      });
-      this.socket.on('frame-pong', function(frame) {
-        var pingTime = (new Date()).getTime() - self.pingStart;
-        self.pingStart = undefined;
-        // console.log('Ping: ' + pingTime + ' ms');
-        frame += (pingTime / 2) / self.targetGameInterval;
-        if (self.started) {
-          var syncInfo = self.sync(frame);
-          syncInfo.unshift(pingTime);
-          self.socket.emit('lag', syncInfo);
-          return;
-        } else {
-          while (self.frame < Math.floor(frame))
-            self.step();
-          self.start();
-          self.socket.emit('lag', [pingTime]);
-        }
+        self.gameStartTime_ = data.st + self.serverTimeDiff_;
+        self.start();
       });
       this.socket.on('control', function(data) {
         self.takeControl(data[0], data[1]);
@@ -734,6 +705,7 @@ wormy.Client = function() {
 
     eventReceived: function(evt) {
       if (!this.addEvent(evt) && !this.oos) {
+        console.log('out of sync');
         this.socket.emit('oos', [this.frame, evt.f]);
         this.oos = true;
       }

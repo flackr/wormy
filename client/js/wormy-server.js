@@ -177,6 +177,7 @@ wormy.Server = function() {
 
       socket.emit('load', {
           f: this.frame,
+          st: this.gameStartTime_,
           s: {
             base: this.compressGameState(this.level, this.baseGameState_),
             moves: this.moves_,
@@ -187,6 +188,7 @@ wormy.Server = function() {
 
     loadLevel: function(level) {
       wormy.Game.prototype.loadLevel.call(this, level);
+      this.gameStartTime_ = performance.now();
       this.moves_ = [];
       while (this.moves_.length < this.playAt + 1)
         this.moves_.push([]);
@@ -312,13 +314,20 @@ wormy.Server = function() {
           {optional: [{RtpDataChannels: true}]});
       this.server_.accept(clientId, pc);
       var self = this;
+      var fc;
 
       pc.ondatachannel = function(e) {
         var c = e.channel;
         c.addEventListener('open', function() {
           self.server_.onConnected(clientId);
-          self.addClient(new RtcHelper.FragmentedChannel(c));
+          self.addClient(fc = new RtcHelper.FragmentedChannel(c));
         });
+      };
+      pc.onsignalingstatechange = function(e) {
+        console.log('Signaling state: ' + pc.signalingState);
+        if (pc.signalingState == 'closed' && fc) {
+          fc.close();
+        }
       };
     },
 
@@ -327,7 +336,16 @@ wormy.Server = function() {
       var socket = new SocketAdapter(c);
       var addr = this.clients.length;
       // Send game state immediately.
-      self.resetClient(socket);
+      socket.on('t', function(data) {
+        socket.emit('t', {
+          st: self.gameStartTime_,
+          ct: performance.now(),
+          i: self.gameInterval
+        });
+      });
+      socket.on('load', function(data) {
+        self.resetClient(socket);
+      });
       self.clients.push({s: socket, worms: [], wormNames: [], coolDown: []});
 
       socket.on('start', function(data) {

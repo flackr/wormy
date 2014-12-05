@@ -119,7 +119,6 @@ var wormy = function() {
       this.recomputeState();
       this.lastStepTime_ = undefined;
       this.lastSyncFrame = undefined;
-      this.newInterval = undefined;
 //      this.gameInterval = this.targetGameInterval;
     },
 
@@ -166,17 +165,20 @@ var wormy = function() {
     },
 
     stop: function() {
-      clearInterval(this.stepTimer_);
+      clearTimeout(this.stepTimer_);
       this.stepTimer_ = 0;
       this.started = false;
       this.lastStepTime_ = undefined;
       this.lastSyncFrame = undefined;
-      this.newInterval = undefined;
+    },
+
+    nextStepTimeout: function() {
+      return this.gameInterval - ((performance.now() - this.gameStartTime_) % this.gameInterval);
     },
 
     start: function() {
-      this.stepTimer_ = setInterval(bind(this, this.step), this.gameInterval);
       this.started = true;
+      this.step();
     },
 
     addEvent: function(evt) {
@@ -187,6 +189,7 @@ var wormy = function() {
       }
       var move_i = this.moves_.length - this.playAt - (this.frame - evt.f) - 1;
       if (move_i < 0 || move_i >= this.moves_.length) {
+        console.log('Refusing move for '+evt.f+' because currently at '+this.frame+' and move window extends only '+this.playAt+' frames in future.');
         return false;
       }
       this.moves_[move_i].push(evt.d);
@@ -202,31 +205,6 @@ var wormy = function() {
       return pf;
     },
 
-    sync: function(frame) {
-      var syncInfo = [];
-      var pf = this.getPartialFrame();
-      if (this.lastSyncFrame) {
-        var actualFrames = pf - this.lastSyncFrame[1];
-        var expectedFrames = frame - this.lastSyncFrame[0];
-        // Compute the ratio to be on time.
-        var skew = adjust(actualFrames / expectedFrames, 0.8);
-        // Add in skew to reach server frame at next sync.
-        var offset = adjust(expectedFrames / ((frame + expectedFrames) - pf), 0.8);
-        this.newInterval = this.gameInterval * skew * offset;
-        // Allowing anywhere between (-30%, +30%)
-        this.newInterval =
-            Math.min(Math.max(this.newInterval, .75*this.targetGameInterval),
-                     1.25 * this.targetGameInterval);
-        syncInfo = [(Math.round(((pf - frame)/(1000/this.targetGameInterval))*100000)/100), // Offset in milliseconds.
-                    (Math.round(((actualFrames - expectedFrames)/expectedFrames)*10000)/100), // Skew %fps of target.
-                    (Math.round(((this.targetGameInterval - this.gameInterval)/this.targetGameInterval+1)*10000)/100), // Old game speed.
-                    (Math.round(((this.targetGameInterval - this.newInterval)/this.targetGameInterval+1)*10000)/100)]; // New game speed.
-//        console.log('Game is off by ' + syncInfo[0] + 'ms (rate off by '+syncInfo[1]+'%) adjusting game speed to '+syncInfo[3]+'%');
-      }
-      this.lastSyncFrame = [frame, pf];
-      return syncInfo;
-    },
-
     recomputeState: function() {
       this.state_ = clone(this.baseGameState_);
       for (var i = 0; i < this.moves_.length - this.playAt - 1; i++)
@@ -235,28 +213,27 @@ var wormy = function() {
     },
 
     step: function() {
-      var changed = false;
-      this.lastStepTime_ = (new Date()).getTime();
-      if (this.newInterval) {
-        this.gameInterval = this.newInterval;
-        clearInterval(this.stepTimer_);
-        this.stepTimer_ = setInterval(bind(this, this.step), this.gameInterval);
-        this.newInterval = undefined;
-      }
-      // Add new frame for current moves.
-      this.moves_.push([]);
-      if (this.moves_.length > this.buffer) {
-        var md = this.moves_.splice(0, this.moves_.length - this.buffer);
-        for (var i = 0; i < md.length; i++)
-          this.process(this.baseGameState_, md[i], true);
-      }
+      var targetFrame = Math.floor((performance.now() - this.gameStartTime_) / this.gameInterval);
+      while (this.frame < targetFrame) {
+        var changed = false;
+        this.lastStepTime_ = (new Date()).getTime();
+        // Add new frame for current moves.
+        this.moves_.push([]);
+        if (this.moves_.length > this.buffer) {
+          var md = this.moves_.splice(0, this.moves_.length - this.buffer);
+          for (var i = 0; i < md.length; i++)
+            this.process(this.baseGameState_, md[i], true);
+        }
 
-      if (this.stateStale_) {
-        this.recomputeState();
-      } else if (this.moves_.length > this.playAt + 1) {
-        this.process(this.state_, this.moves_[this.moves_.length - this.playAt - 2]);
+        if (this.stateStale_) {
+          this.recomputeState();
+        } else if (this.moves_.length > this.playAt + 1) {
+          this.process(this.state_, this.moves_[this.moves_.length - this.playAt - 2]);
+        }
+        this.frame++;
       }
-      this.frame++;
+      if (this.started)
+        this.stepTimer_ = setTimeout(bind(this, this.step));
     },
 
     disconnected: function(playerNo) {
@@ -279,8 +256,12 @@ var wormy = function() {
     process: function(g, md, is_final) {
       for (var i = 0; i < md.length; i++) {
         if (md[i].t == 'm') { // Movement
-          // Only change direction if alive.
-          if (g.p[md[i].p].s == 0)
+          if (g.p[md[i].p].s != 0)
+            console.log('Not moving because worm is dead');
+          else if (g.p[md[i].p].t.length > 1 &&
+                   (md[i].d + 2) % 4 == g.p[md[i].p].t[1][3])
+            console.log('Not letting ' + md[i].p + ' turn into itself.');
+          else
             g.p[md[i].p].t[0][3] = md[i].d;
         } else if (md[i].t == 'p') { // Use power.
           if (g.p[md[i].p].f == md[i].f) continue;
@@ -385,7 +366,7 @@ var wormy = function() {
         // When speeding move interval is reduced.
         if (g.p[pi].p == 1 && g.p[pi].f)
           moveInterval--;
-        g.p[pi].m = (g.f % moveInterval == 0) ? 1 : 0;
+        g.p[pi].m = (g.f % moveInterval == moveInterval - 1) ? 1 : 0;
 
         // Allow freezing in place when using freeze powerup.
         if (g.p[pi].p == 4 && g.p[pi].f)
