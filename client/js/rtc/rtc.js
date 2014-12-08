@@ -157,7 +157,7 @@ window.RtcHelper = function() {
       peerConnection.setLocalDescription(desc);
       details.answer = desc;
       self.sendClientResponse_(clientId, ['answer='+encodeURIComponent(JSON.stringify(details.answer))]);
-    });
+    }, function() { console.log('Failed to create answer'); });
     peerConnection.onicecandidate = function(e) {
       if (!e.candidate)
         return;

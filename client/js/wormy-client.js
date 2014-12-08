@@ -651,8 +651,10 @@ wormy.Client = function() {
       pc.createOffer(function(desc) {
           pc.setLocalDescription(desc);
           rtc.connect(RtcHelper.getUrlFromId(id), desc);
-        }, null, { 'mandatory': { 'OfferToReceiveAudio': false,
-                                  'OfferToReceiveVideo': false } });
+        },
+        function() { console.log('Error creating offer'); },
+        { 'mandatory': { 'offerToReceiveAudio': false,
+                         'offerToReceiveVideo': false } });
       dc.addEventListener('open', function() {
         rtc.close();
         self.connectClient(new RtcHelper.FragmentedChannel(dc));

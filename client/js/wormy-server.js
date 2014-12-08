@@ -450,10 +450,6 @@ wormy.Server = function() {
         }
         console.log('INFO: Client '+addr+' disconnected, killing worms '+wormlist.join());
       });
-      socket.on('oos', function(data) {
-        console.log('WARNING: Lag or out of sync: ' + addr + ' received event for f# ' + data[1] + ' on f# ' + data[0]);
-        self.resetClient(socket);
-      });
 
       /**
        * Receives updates on the current network and timing statistics for the given player.
