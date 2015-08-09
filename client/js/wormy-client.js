@@ -221,6 +221,7 @@ wormy.Client = function() {
     },
 
     createGame: function() {
+      this.showDialog($('loading'));
       var self = this;
       var host = lobbyApi.createSession('wormy');
       window.server = new wormy.Server(host, $('game-name').value);
@@ -644,6 +645,7 @@ wormy.Client = function() {
     },
 
     connectGame: function(id) {
+      this.showDialog($('loading'));
       window.location.hash = id;
       var self = this;
       var connection = lobbyApi.joinSession(id);
