@@ -224,7 +224,7 @@ wormy.Client = function() {
       this.showDialog($('loading'));
       var self = this;
       var host = lobbyApi.createSession('wormy');
-      window.server = new wormy.Server(host, $('game-name').value);
+      window.server = new wormy.Server(host, $('game-name').value, $('game-speed').value / 10);
 
       // TODO: Create mock local connection for local player.
       var self = this;

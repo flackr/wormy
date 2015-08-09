@@ -12,8 +12,10 @@ wormy.Server = function() {
   var idleFrames = 25 * 5; // 25 seconds considered idle.
   var coolDownFrames = 20; // 4 seconds between reconnects.
 
-  var Server = function(server, name) {
+  var Server = function(server, name, speed) {
     wormy.Game.apply(this);
+    // Set speed (0.0 - 1.0) to 125ms to 32ms.
+    this.gameInterval = (32 - 125) * speed + 125;
     this.server_ = server;
     this.game_ = null;
     this.clients = [];
