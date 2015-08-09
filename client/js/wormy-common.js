@@ -29,25 +29,19 @@ SocketAdapter.prototype = {
   },
 
   on: function(type, callback) {
-    if (!this.listeners_[type])
-      this.listeners_[type] = [];
-    this.listeners_[type].push(callback);
+    this.listeners_[type] = callback;
   },
 
   onMessage: function(e) {
     var m = JSON.parse(e.data);
     if (this.listeners_[m.t]) {
-      for (var i = 0; i < this.listeners_[m.t].length; i++) {
-        this.listeners_[m.t][i](m.d);
-      }
+      this.listeners_[m.t](m.d);
     }
   },
 
   onClose: function() {
     if (this.listeners_['disconnect']) {
-      for (var i = 0; i < this.listeners_['disconnect'].length; i++) {
-        this.listeners_['disconnect'][i]();
-      }
+      this.listeners_['disconnect']();
     }
   },
 };

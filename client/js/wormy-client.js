@@ -663,16 +663,6 @@ wormy.Client = function() {
         this.localPlayers_[i].w = -1;
 
       var self = this;
-      this.socket.emit('t');
-      var pingStart = performance.now();
-      this.socket.on('t', function(data) {
-        var ping = performance.now() - pingStart;
-        self.serverTimeDiff_ = performance.now() - data.ct;
-        self.serverTimeDiff_ -= 0.5 * ping;
-        self.gameInterval = data.i;
-        console.log('ping of ' + ping + ', game interval: ' + self.gameInterval);
-        self.socket.emit('load');
-      });
       this.socket.on('load', function(data) {
         self.stop();
         self.frame = data.f;
@@ -684,7 +674,9 @@ wormy.Client = function() {
         self.start();
       });
       this.socket.on('control', function(data) {
-        self.takeControl(data[0], data[1]);
+        self.updatePing(function() {
+          self.takeControl(data[0], data[1]);
+        });
       });
       this.socket.on('c', function(data) {
         if (data.t == 'j') {
@@ -696,6 +688,25 @@ wormy.Client = function() {
         }
       });
       this.socket.on('d', bind(this, this.eventReceived));
+      this.updatePing(function() {
+        self.socket.emit('load');
+      });
+    },
+
+    updatePing: function(andThen) {
+      var self = this;
+      var pingStart;
+      this.socket.on('t', function(data) {
+        var ping = performance.now() - pingStart;
+        self.serverTimeDiff_ = performance.now() - data.ct;
+        self.serverTimeDiff_ -= 0.5 * ping;
+        self.gameInterval = data.i;
+        console.log('ping of ' + ping + ', game interval: ' + self.gameInterval);
+        if (andThen)
+          andThen();
+      });
+      this.socket.emit('t');
+      pingStart = performance.now();
     },
 
     eventReceived: function(evt) {
