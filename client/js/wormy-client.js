@@ -19,6 +19,8 @@ wormy.Client = function() {
         window.setTimeout(callback, 0);
       };
 
+  var lobbyApi = new lobby.LobbyApi('wss://lobbyjs.com');
+
   var pageHidden = function() {
     return document.hidden ||
            document.mozHidden ||
@@ -166,8 +168,9 @@ wormy.Client = function() {
     },
 
     initializeLobby: function() {
-      $('refresh-games').addEventListener('click', this.updateGameList.bind(this));
-      this.updateGameList();
+      // TODO: Request game list when lobby is ready.
+      //$('refresh-games').addEventListener('click', this.updateGameList.bind(this));
+      //this.updateGameList();
     },
 
     updateGameList: function() {
@@ -180,7 +183,7 @@ wormy.Client = function() {
       }
       games = [];
       var request = new XMLHttpRequest();
-      request.open("POST", "http://www.dynprojects.com/dp/games/", true);
+      request.open("GET", "https://www.lobbjs.com/list/wormy", true);
       request.setRequestHeader("Content-type","application/x-www-form-urlencoded");
       request.responseType = 'json';
       var self = this;
@@ -193,7 +196,6 @@ wormy.Client = function() {
               var gameDiv = $('gameItem').cloneNode(true);
               gameDiv.setAttribute('id', '');
               gameDiv.querySelector('.name').textContent = games[i].name;
-              gameDiv.querySelector('.players').textContent = games[i].players;
               gameDiv.querySelector('.join').addEventListener('click', self.connectGame.bind(self, games[i].connection));
               gameTbl.appendChild(gameDiv);
             }
@@ -220,11 +222,14 @@ wormy.Client = function() {
 
     createGame: function() {
       var self = this;
-      var host = new RtcHelper.Server();
+      var host = lobbyApi.createSession('wormy');
       window.server = new wormy.Server(host, $('game-name').value);
-      var localSocket = new RtcHelper.LocalSocket();
-      this.connectClient(localSocket);
-      window.server.addClient(new RtcHelper.LocalSocket(localSocket));
+
+      // TODO: Create mock local connection for local player.
+      var self = this;
+      host.addEventListener('open', function(id) {
+        self.connectGame(id);
+      });
     },
 
     colourizeImageData: function(data, oldColour, colour) {
@@ -641,23 +646,9 @@ wormy.Client = function() {
     connectGame: function(id) {
       window.location.hash = id;
       var self = this;
-      var pc = new (window.RTCPeerConnection ||
-                    window.webkitRTCPeerConnection ||
-                    window.mozRTCPeerConnection)(
-          {"iceServers": [{ "url": "stun:stun.l.google.com:19302" }]},
-          {optional: [{RtpDataChannels: true}]});
-      var dc = pc.createDataChannel('data', {'reliable': true});
-      var rtc = new RtcHelper.Client(pc);
-      pc.createOffer(function(desc) {
-          pc.setLocalDescription(desc);
-          rtc.connect(RtcHelper.getUrlFromId(id), desc);
-        },
-        function() { console.log('Error creating offer'); },
-        { 'mandatory': { 'offerToReceiveAudio': false,
-                         'offerToReceiveVideo': false } });
-      dc.addEventListener('open', function() {
-        rtc.close();
-        self.connectClient(new RtcHelper.FragmentedChannel(dc));
+      var connection = lobbyApi.joinSession(id);
+      connection.addEventListener('open', function() {
+        self.connectClient(connection);
       });
     },
 

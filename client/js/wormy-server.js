@@ -20,7 +20,6 @@ wormy.Server = function() {
     this.worms = [];
     this.loadLevel(0);
 
-    this.server_.addEventListener('open', this.onServerReady.bind(this, name));
     this.server_.addEventListener('connection', this.onConnection.bind(this));
   }
 
@@ -34,12 +33,6 @@ wormy.Server = function() {
     },
 
     onServerReady: function(name) {
-      // Register game with game list.
-      window.location.hash = this.server_.id();
-      this.game_ = new GameList.Game({
-        'connection': this.server_.id(),
-        'name': name
-      });
     },
 
     serverStatus: function() {
@@ -306,29 +299,8 @@ wormy.Server = function() {
       }
     },
 
-    onConnection: function(clientId) {
-      var pc = new (window.RTCPeerConnection ||
-                    window.webkitRTCPeerConnection ||
-                    window.mozRTCPeerConnection)(
-          {"iceServers": [{ "url": "stun:stun.l.google.com:19302" }]},
-          {optional: [{RtpDataChannels: true}]});
-      this.server_.accept(clientId, pc);
-      var self = this;
-      var fc;
-
-      pc.ondatachannel = function(e) {
-        var c = e.channel;
-        c.addEventListener('open', function() {
-          self.server_.onConnected(clientId);
-          self.addClient(fc = new RtcHelper.FragmentedChannel(c));
-        });
-      };
-      pc.onsignalingstatechange = function(e) {
-        console.log('Signaling state: ' + pc.signalingState);
-        if (pc.signalingState == 'closed' && fc) {
-          fc.close();
-        }
-      };
+    onConnection: function(connection) {
+      this.addClient(connection);
     },
 
     addClient: function(c) {
