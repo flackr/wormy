@@ -20,6 +20,7 @@ function SocketAdapter(connection) {
   this.listeners_ = {};
   this.connection_ = connection;
   this.connection_.addEventListener('message', this.onMessage.bind(this));
+  this.connection_.addEventListener('close', this.onClose.bind(this));
 }
 
 SocketAdapter.prototype = {
@@ -38,6 +39,14 @@ SocketAdapter.prototype = {
     if (this.listeners_[m.t]) {
       for (var i = 0; i < this.listeners_[m.t].length; i++) {
         this.listeners_[m.t][i](m.d);
+      }
+    }
+  },
+
+  onClose: function() {
+    if (this.listeners_['disconnect']) {
+      for (var i = 0; i < this.listeners_['disconnect'].length; i++) {
+        this.listeners_['disconnect'][i]();
       }
     }
   },
