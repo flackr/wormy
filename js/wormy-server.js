@@ -22,6 +22,7 @@ wormy.Server = function() {
     this.worms = [];
     this.loadLevel(0);
 
+    this.server_.addEventListener('open', this.onServerReady.bind(this, name, speed));
     this.server_.addEventListener('connection', this.onConnection.bind(this));
   }
 
@@ -34,7 +35,8 @@ wormy.Server = function() {
         this.game_.close();
     },
 
-    onServerReady: function(name) {
+    onServerReady: function(name, speed) {
+      this.server_.setDescription({'name': name, 'speed': speed});
     },
 
     serverStatus: function() {
@@ -431,7 +433,7 @@ wormy.Server = function() {
        */
       socket.on('lag', function(data) {
         var i = self.clientIndex(socket);
-        self.sendPing(i, data[0] + Math.round(data.length > 1 ? Math.abs(data[1]) : 0));
+        self.sendPing(i, data);
       });
     },
   };

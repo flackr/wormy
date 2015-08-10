@@ -19,6 +19,9 @@ wormy.Client = function() {
         window.setTimeout(callback, 0);
       };
 
+  window.performance = window.performance ||
+      {'now': function() { return (new Date()).getTime(); }};
+
   var lobbyApi = new lobby.LobbyApi('wss://lobbyjs.com');
 
   var pageHidden = function() {
@@ -81,6 +84,7 @@ wormy.Client = function() {
     this.dialog = null;
     this.socket = undefined;
     this.canvas = document.getElementById('gameCanvas');
+    this.lastPingUpdate_ = 0;
     this.flags = {
       retro: false,
     };
@@ -168,9 +172,8 @@ wormy.Client = function() {
     },
 
     initializeLobby: function() {
-      // TODO: Request game list when lobby is ready.
-      //$('refresh-games').addEventListener('click', this.updateGameList.bind(this));
-      //this.updateGameList();
+      setInterval(this.updateGameList.bind(this), 5000);
+      this.updateGameList();
     },
 
     updateGameList: function() {
@@ -183,22 +186,21 @@ wormy.Client = function() {
       }
       games = [];
       var request = new XMLHttpRequest();
-      request.open("GET", "https://www.lobbjs.com/list/wormy", true);
+      request.open("GET", "https://www.lobbyjs.com/list/wormy", true);
       request.setRequestHeader("Content-type","application/x-www-form-urlencoded");
       request.responseType = 'json';
       var self = this;
       request.addEventListener('loadend', function(e) {
         if (request.status == 200) {
-          if (request.response.result == 'success') {
-            var games = request.response.games;
-            var gameTbl = $('wormy-game-list');
-            for (var i = 0; i < games.length; i++) {
-              var gameDiv = $('gameItem').cloneNode(true);
-              gameDiv.setAttribute('id', '');
-              gameDiv.querySelector('.name').textContent = games[i].name;
-              gameDiv.querySelector('.join').addEventListener('click', self.connectGame.bind(self, games[i].connection));
-              gameTbl.appendChild(gameDiv);
-            }
+          var games = request.response;
+          var gameTbl = $('wormy-game-list');
+          for (var i in games) {
+            var gameDiv = $('gameItem').cloneNode(true);
+            gameDiv.setAttribute('id', '');
+            gameDiv.querySelector('.name').textContent = games[i].name;
+            gameDiv.querySelector('.speed').textContent = games[i].speed * 10;
+            gameDiv.querySelector('.join').addEventListener('click', self.connectGame.bind(self, i));
+            gameTbl.appendChild(gameDiv);
           }
         }
       });
@@ -674,9 +676,7 @@ wormy.Client = function() {
         self.start();
       });
       this.socket.on('control', function(data) {
-        self.updatePing(function() {
-          self.takeControl(data[0], data[1]);
-        });
+        self.takeControl(data[0], data[1]);
       });
       this.socket.on('c', function(data) {
         if (data.t == 'j') {
@@ -694,6 +694,8 @@ wormy.Client = function() {
     },
 
     updatePing: function(andThen) {
+      if (!this.socket)
+        return;
       var self = this;
       var pingStart;
       this.socket.on('t', function(data) {
@@ -702,11 +704,12 @@ wormy.Client = function() {
         self.serverTimeDiff_ -= 0.5 * ping;
         self.gameInterval = data.i;
         console.log('ping of ' + ping + ', game interval: ' + self.gameInterval);
+        self.socket.emit('lag', Math.round(ping));
         if (andThen)
           andThen();
       });
       this.socket.emit('t');
-      pingStart = performance.now();
+      this.lastPingUpdate_ = pingStart = performance.now();
     },
 
     eventReceived: function(evt) {
@@ -782,6 +785,8 @@ wormy.Client = function() {
       // Minimap eventually?
       // this.draw(this.baseGameState_, 0, 0, 80, 50, 80, 50);
       this.updateScores();
+      if (performance.now() - this.lastPingUpdate_ > 5000)
+        this.updatePing();
     },
 
     draw: function(ctx, state, spriteSheet, x1, y1, x2, y2, dx, dy, blockSize) {
