@@ -673,6 +673,7 @@ wormy.Client = function() {
         self.layout();
         self.resetPlayers(data.p);
         self.oos = false;
+        self.serverStartTime_ = data.st;
         self.gameStartTime_ = data.st + self.serverTimeDiff_;
         self.start();
       });
@@ -700,9 +701,11 @@ wormy.Client = function() {
       var self = this;
       var pingStart;
       this.socket.on('t', function(data) {
-        var ping = performance.now() - pingStart;
-        self.serverTimeDiff_ = performance.now() - data.ct;
-        self.serverTimeDiff_ -= 0.5 * ping;
+        var timeNow = performance.now();
+        var ping = timeNow - pingStart;
+        self.serverTimeDiff_ = timeNow - data.ct;
+        self.serverTimeDiff_ += 0.5 * ping;
+        self.gameStartTime_ = self.serverStartTime_ + self.serverTimeDiff_;
         self.gameInterval = data.i;
         console.log('ping of ' + ping + ', game interval: ' + self.gameInterval);
         self.socket.emit('lag', Math.round(ping));
