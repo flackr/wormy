@@ -703,8 +703,8 @@ wormy.Client = function() {
       this.socket.on('t', function(data) {
         var timeNow = performance.now();
         var ping = timeNow - pingStart;
-        self.serverTimeDiff_ = timeNow - data.ct;
-        self.serverTimeDiff_ += 0.5 * ping;
+        // Remove half a ping time to account for time for server message to get here.
+        self.serverTimeDiff_ = timeNow - 0.5 * ping - data.ct;
         self.gameStartTime_ = self.serverStartTime_ + self.serverTimeDiff_;
         self.gameInterval = data.i;
         console.log('ping of ' + ping + ', game interval: ' + self.gameInterval);
