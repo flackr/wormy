@@ -172,7 +172,7 @@ wormy.Client = function() {
     },
 
     initializeLobby: function() {
-      setInterval(this.updateGameList.bind(this), 5000);
+      setInterval(this.updateGameList.bind(this), 8000);
       this.updateGameList();
     },
 
@@ -187,24 +187,21 @@ wormy.Client = function() {
       games = [];
       var request = new XMLHttpRequest();
       request.open("GET", "https://www.lobbyjs.com/list/wormy", true);
-      request.setRequestHeader("Content-type","application/x-www-form-urlencoded");
       request.responseType = 'json';
       var self = this;
-      request.addEventListener('loadend', function(e) {
-        if (request.status == 200) {
-          var games = request.response;
-          var gameTbl = $('wormy-game-list');
-          for (var i in games) {
-            var gameDiv = $('gameItem').cloneNode(true);
-            gameDiv.setAttribute('id', '');
-            gameDiv.querySelector('.name').textContent = games[i].name;
-            gameDiv.querySelector('.speed').textContent = games[i].speed * 10;
-            gameDiv.querySelector('.join').addEventListener('click', self.connectGame.bind(self, i));
-            gameTbl.appendChild(gameDiv);
-          }
+      request.addEventListener('load', function(e) {
+        var games = request.response;
+        var gameTbl = $('wormy-game-list');
+        for (var i in games) {
+          var gameDiv = $('gameItem').cloneNode(true);
+          gameDiv.setAttribute('id', '');
+          gameDiv.querySelector('.name').textContent = games[i].name;
+          gameDiv.querySelector('.speed').textContent = games[i].speed * 10;
+          gameDiv.querySelector('.join').addEventListener('click', self.connectGame.bind(self, i));
+          gameTbl.appendChild(gameDiv);
         }
       });
-      request.send("order=-created");
+      request.send();
     },
 
     disconnect: function() {
