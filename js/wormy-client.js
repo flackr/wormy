@@ -407,7 +407,7 @@ wormy.Client = function() {
 
     resetWorm_: function(worm) {
       // Only reset if the worm is dead and has no tail.
-      if (this.state_.p[worm].s == 1 && this.state_.p[worm].t.length == 0)
+      if (!this.state_.p[worm] || (this.state_.p[worm].s == 1 && this.state_.p[worm].t.length == 0))
         this.dispatchDelayedCommand({t: 'r', p: worm});
     },
 
@@ -526,7 +526,8 @@ wormy.Client = function() {
                   return;
                 } else if (j == 4) {
                   // If the player is already playing and dead, revive.
-                  if (this.state_.p[this.localPlayers_[i].w].s == 1) {
+                  if (!this.state_.p[this.localPlayers_[i].w] ||
+                      this.state_.p[this.localPlayers_[i].w].s == 1) {
                     this.resetWorm_(this.localPlayers_[i].w);
                     return;
                   }

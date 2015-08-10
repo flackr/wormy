@@ -185,12 +185,16 @@ wormy.Server = function() {
 
     loadLevel: function(level) {
       wormy.Game.prototype.loadLevel.call(this, level);
+      this.frame = 0;
       this.gameStartTime_ = performance.now();
       this.moves_ = [];
       while (this.moves_.length < this.playAt + 1)
         this.moves_.push([]);
-      for (var i = 0; i < this.clients.length; i++)
+      for (var i = 0; i < this.clients.length; i++) {
+        for (var j = 0; j < this.clients[i].coolDown.length; j++)
+          this.clients[i].coolDown[j] = 0;
         this.resetClient(this.clients[i].s);
+      }
       this.spawnFood();
       this.start();
     },
