@@ -236,7 +236,7 @@ var wormy = function() {
         this.frame++;
       }
       if (this.started)
-        this.stepTimer_ = setTimeout(bind(this, this.step));
+        this.stepTimer_ = setTimeout(bind(this, this.step), this.nextStepTimeout());
     },
 
     disconnected: function(playerNo) {

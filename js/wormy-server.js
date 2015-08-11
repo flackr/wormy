@@ -20,6 +20,8 @@ wormy.Server = function() {
     this.game_ = null;
     this.clients = [];
     this.worms = [];
+    this.frame = 0;
+    this.gameStartTime_ = performance.now();
     this.loadLevel(0);
 
     this.server_.addEventListener('open', this.onServerReady.bind(this, name, speed));
@@ -185,8 +187,6 @@ wormy.Server = function() {
 
     loadLevel: function(level) {
       wormy.Game.prototype.loadLevel.call(this, level);
-      this.frame = 0;
-      this.gameStartTime_ = performance.now();
       this.moves_ = [];
       while (this.moves_.length < this.playAt + 1)
         this.moves_.push([]);

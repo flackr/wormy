@@ -668,12 +668,12 @@ wormy.Client = function() {
       this.socket.on('load', function(data) {
         self.stop();
         self.frame = data.f;
+        self.serverStartTime_ = data.st;
+        self.gameStartTime_ = data.st + self.serverTimeDiff_;
         self.reset(data.s);
         self.layout();
         self.resetPlayers(data.p);
         self.oos = false;
-        self.serverStartTime_ = data.st;
-        self.gameStartTime_ = data.st + self.serverTimeDiff_;
         self.start();
       });
       this.socket.on('control', function(data) {
