@@ -465,10 +465,12 @@ wormy.Client = function() {
 
     handleTouchPositionDpad_: function(evt) {
       if (evt.touches.length != 1) return;
-      if (evt.touches[0].pageX > document.body.clientWidth / 2) {
-        $('dpad-overlay').classList.remove('left');
-      } else {
-        $('dpad-overlay').classList.add('left');
+      if ($('dpad-overlay').offsetWidth < 0.3 * document.body.clientWidth) {
+        if (evt.touches[0].pageX > document.body.clientWidth / 2) {
+          $('dpad-overlay').classList.remove('left');
+        } else {
+          $('dpad-overlay').classList.add('left');
+        }
       }
     },
 
@@ -494,7 +496,7 @@ wormy.Client = function() {
           }
         }
       }
-      el.setAttribute('active');
+      el.setAttribute('active', true);
       evt.preventDefault();
       evt.stopPropagation();
     },
