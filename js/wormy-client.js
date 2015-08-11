@@ -125,6 +125,7 @@ wormy.Client = function() {
     initialize: function() {
       var s = new Image();
       var self = this;
+      s.crossOrigin = '';
       s.src = 'gfx/wormy.png';
       s.onload = function() {
         var players = drawStyle.length - 3;
