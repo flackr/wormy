@@ -838,7 +838,7 @@ wormy.Client = function() {
               if (state.p[i].t[j][2] != layer)
                 continue;
               ctx.save();
-              this.canvasState.push(state.p[i].t[j])
+              this.canvasState.push(state.p[i].t[j]);
               ctx.translate(state.p[i].t[j][1] * blockSize + blockSize/2,
                             state.p[i].t[j][0] * blockSize + blockSize/2);
               var rotate = state.p[i].t[j][3];
