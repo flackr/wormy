@@ -168,7 +168,6 @@ var wormy = function() {
     },
 
     stop: function() {
-      clearTimeout(this.stepTimer_);
       this.stepTimer_ = 0;
       this.started = false;
       this.lastStepTime_ = undefined;
@@ -185,11 +184,10 @@ var wormy = function() {
     },
 
     addEvent: function(evt) {
-      // If not started we use incoming packets to keep up with the frame.
-      if (!this.started) {
-        while (this.frame < evt.f - this.playAt)
-          this.step();
-      }
+      // We should always be at least as far as the frame we receive input for.
+      // Note: we could check this.started and rely on the requestAnimationFrame to step.
+      while (this.frame < evt.f - this.playAt)
+        this.step();
       var move_i = this.moves_.length - this.playAt - (this.frame - evt.f) - 1;
       if (move_i < 0 || move_i >= this.moves_.length) {
         console.log('Refusing move for '+evt.f+' because currently at '+this.frame+' and move window extends only '+this.playAt+' frames in future.');
@@ -217,6 +215,7 @@ var wormy = function() {
 
     step: function() {
       var targetFrame = Math.floor((performance.now() - this.gameStartTime_) / this.gameInterval);
+      var updated = false;
       while (this.frame < targetFrame) {
         var changed = false;
         this.lastStepTime_ = (new Date()).getTime();
@@ -234,9 +233,11 @@ var wormy = function() {
           this.process(this.state_, this.moves_[this.moves_.length - this.playAt - 2]);
         }
         this.frame++;
+        updated = true;
       }
       if (this.started)
-        this.stepTimer_ = setTimeout(bind(this, this.step), this.nextStepTimeout());
+        this.stepTimer_ = requestAnimationFrame(bind(this, this.step));
+      return updated;
     },
 
     disconnected: function(playerNo) {

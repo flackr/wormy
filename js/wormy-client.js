@@ -354,13 +354,12 @@ wormy.Client = function() {
     },
 
     step: function() {
-      wormy.Game.prototype.step.call(this);
-      if (this.started) {
+      if (this.started && wormy.Game.prototype.step.call(this)) {
         for (var i = 0; i < this.state_.p.length; i++) {
           // Only redraw if a worm moved.
           if ((this.state_.f % this.moveInterval) == 0 ||
               this.state_.p[i].m) {
-            this.requestDraw();
+            this.redraw();
             break;
           }
         }
