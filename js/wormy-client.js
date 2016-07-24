@@ -792,6 +792,12 @@ wormy.Client = function() {
         this.updatePing();
     },
 
+    drawSprite: function(ctx, spriteSheet, blockSize, spriteX, spriteY, blockX, blockY) {
+      ctx.drawImage(spriteSheet,
+        spriteX * spriteSize, spriteY * spriteSize, spriteSize, spriteSize,
+        blockX * blockSize, blockY * blockSize, blockSize, blockSize);
+    },
+
     draw: function(ctx, state, spriteSheet, x1, y1, x2, y2, dx, dy, blockSize) {
       ctx.save();
       ctx.translate(dx, dy);
@@ -805,30 +811,21 @@ wormy.Client = function() {
                 pos[1] < 0 || pos[1] >= state.l[pos[0]].length)
               continue;
             var s = state.l[pos[0]][pos[1]][1];
-            ctx.drawImage(spriteSheet, s == 1 ? spriteSize : 0, 0, spriteSize, spriteSize,
-                          pos[1] * blockSize, pos[0] * blockSize, blockSize, blockSize);
+            this.drawSprite(ctx, spriteSheet, blockSize, s == 1 ? 1 : 0, 0, pos[1], pos[0]);
           }
         } else {
           this.canvasState = [];
           for (var i = 0; i < x2 - x1; i++) {
             for (var j = 0; j < y2 - y1; j++) {
               var s = state.l[y1 + j][x1 + i][1];
-              if (s != 1) {
-                ctx.drawImage(spriteSheet, 0, 0, spriteSize, spriteSize,
-                              i * blockSize, j * blockSize, blockSize, blockSize);
-              } else {
-                ctx.drawImage(spriteSheet, spriteSize, 0, spriteSize, spriteSize,
-                              i * blockSize, j * blockSize, blockSize, blockSize);
-              }
+              this.drawSprite(ctx, spriteSheet, blockSize, s == 1 ? 1 : 0, 0, i, j);
             }
           }
         }
 
         for (var i = 0; i < state.food.length; i++) {
           this.canvasState.push(state.food[i]);
-          ctx.drawImage(spriteSheet,
-                        5 * spriteSize, (1 + state.food[i][2]) * spriteSize, spriteSize, spriteSize,
-                        state.food[i][1] * blockSize, state.food[i][0] * blockSize, blockSize, blockSize);
+          this.drawSprite(ctx, spriteSheet, blockSize, 5, (1 + state.food[i][2]), state.food[i][1], state.food[i][0]);
         }
         // Then draw the worms.
         for (var layer = 0; layer < 2; layer++) {
@@ -873,19 +870,13 @@ wormy.Client = function() {
                 tailPos[0] -= this.moveVectors[state.p[i].t[j][3]][0];
                 tailPos[1] -= this.moveVectors[state.p[i].t[j][3]][1];
                 this.canvasState.push(tailPos);
-                ctx.drawImage(spriteSheet,
-                              0,
-                              (2 + i) * spriteSize, // Player
-                              spriteSize, spriteSize,
-                              -blockSize/2, blockSize/2,
-                              blockSize,blockSize);
+                this.drawSprite(ctx, spriteSheet, blockSize,
+                               0, (2 + i), // Player
+                               -0.5, 0.5);
               }
-              ctx.drawImage(spriteSheet,
-                            spriteSize * sprite,
-                            (2 + i) * spriteSize, // Player
-                            spriteSize, spriteSize,
-                            -blockSize/2, -blockSize/2,
-                            blockSize,blockSize);
+              this.drawSprite(ctx, spriteSheet, blockSize,
+                            sprite, (2 + i), // Player
+                            -0.5, -0.5);
               ctx.restore();
             }
           }
