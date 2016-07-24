@@ -140,6 +140,10 @@ wormy.Client = function() {
                                         hexToRgb(drawStyle[i + 3]));
           ctx.putImageData(data, 0, (i + 2) * spriteSize);
         }
+        // The spriteSheet is now structured as follows:
+        //  - row 0 has the common sprites: 0:background, 1:wall, 2:food
+        //  - for each player i, row i+1 has sprites in that player color:
+        //    - 0:tail, 1:body, 2:corner, 3:head, 4:dead-head, 5:food
         self.spriteSheet = spriteSheet;
         if (self.state_) {
           self.canvasState = null;
