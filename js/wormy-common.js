@@ -392,12 +392,13 @@ var wormy = function() {
             g.p[pi].l += tailInc;
             for (var j = 0; j < g.food.length; j++) {
               if (g.food[j][0] == next[0] && g.food[j][1] == next[1]) {
-                // Lose energy if picking up a different power.
+                // If we're picking up a new power
                 if (g.food[j][2] && g.p[pi].p != g.food[j][2]) {
-                  g.p[pi].e = 0;
-                  g.p[pi].p = g.food[j][2];
-                  g.p[pi].f = 0;
+                  g.p[pi].e = 0; // reset energy 
+                  g.p[pi].p = g.food[j][2]; // set power for food
+                  g.p[pi].f = 0; // mark power as not currently being used
                 }
+                // Remove the food from the board
                 g.food.splice(j, 1);
                 j--;
               }
