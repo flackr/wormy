@@ -22,7 +22,7 @@ wormy.Client = function() {
   window.performance = window.performance ||
       {'now': function() { return (new Date()).getTime(); }};
 
-  var lobbyApi = new lobby.LobbyApi('wss://lobbyjs.com');
+  var lobbyApi = new lobby.LobbyApi('wss://www.lobbyjs.com');
 
   var pageHidden = function() {
     return document.hidden ||
