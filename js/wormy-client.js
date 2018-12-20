@@ -22,7 +22,8 @@ wormy.Client = function() {
   window.performance = window.performance ||
       {'now': function() { return (new Date()).getTime(); }};
 
-  var lobbyApi = new lobby.LobbyApi('wss://www.lobbyjs.com');
+  var lobbyApi = new lobby.LobbyApi(window.location.origin.endsWith('.github.io') ?
+      'wss://flack.undo.it' : window.location.origin.replace(/^http/, 'ws'));
 
   var pageHidden = function() {
     return document.hidden ||
@@ -191,7 +192,8 @@ wormy.Client = function() {
       }
       games = [];
       var request = new XMLHttpRequest();
-      request.open("GET", "https://www.lobbyjs.com/list/wormy", true);
+      request.open("GET", (window.location.origin.endsWith('.github.io') ?
+          'https://flack.undo.it' : '') + "/list/wormy", true);
       request.responseType = 'json';
       var self = this;
       request.addEventListener('load', function(e) {
